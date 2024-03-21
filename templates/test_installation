@@ -1,0 +1,17 @@
+# FabDummy Exec Template:
+cd $job_results
+$run_prefix
+
+/usr/bin/env > env.log
+hostname > hostname.log
+
+start_time="$(date -u +%s.%n)"
+echo "Starting at $start_time." > start_time.log
+
+python --version > python_version.log
+pwd > pwd.log
+
+python install_mamico.py
+
+echo "Starting dummy job, which will print the contents of test_installation.txt."
+/bin/cat file_with_random_content.txt
