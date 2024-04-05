@@ -1,0 +1,15 @@
+# FabDummy Exec Template:
+cd $job_results
+$run_prefix
+
+/usr/bin/env > env.log
+hostname > hostname.log
+
+start_time="$(date -u +%s.%n)"
+echo "Starting at $start_time." > start_time.log
+
+pwd > pwd.log
+
+python install_mamico.py
+
+echo "my_installation job"
