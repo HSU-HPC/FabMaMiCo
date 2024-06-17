@@ -1,0 +1,142 @@
+couette_test:
+  domain:
+    channelheight: 50
+    wall_init_velocity: "0.0 ; 0.0 ; 0.0"
+    wall_init_cycles: 0
+    wall_velocity: "0.5 ; 0.0 ; 0.0"
+    wall_oscillations: 0
+
+  coupling:
+    coupling_cycles: 50
+    two_way_coupling: yes
+    send_from_md_to_macro: yes
+    filter_init_cycles: 0
+    write_csv_every_timestep: 2
+    send_from_macro_to_md: yes
+    compute_snr: no
+
+  macroscopic_solver:
+    type: "fd"
+    viscosity: 2.14
+    number_of_processes: "1 ; 1 ; 1"
+    plot_every_timestep: 2
+    init_advance_cycles: 0
+    foam_setup_directory: "/home/helene/Dokumente/mamico-dev/coupling/tests/build_couette"
+    foam_setup_folder: "FoamSetup"
+    boundaries_with_MD: 0; 0; 0; 0; 0; 0; 1; 1; 1; 1; 1; 1
+
+  microscopic_solver:
+    type: "md"
+    temperature: 1.1
+    equilibration_steps: 0
+    number_md_simulations: 4
+    density: 0.813037037
+
+mamico:
+  macroscopic_cell_configuration:
+    cell_size: "2.5 ; 2.5 ; 2.5"
+    linked_cells_per_macroscopic_cell: "1 ; 1 ; 1"
+    write_every_microscopic_timestep: 0
+    microscopic_filename: "MacroscopicCell_micro"
+    write_every_macroscopic_timestep: 0
+    macroscopic_filename: "MacroscopicCell_macro"
+    particle_insertion:
+      type: "none"
+      maximum_number_of_iterations: 100
+      maximum_number_of_restarts: 500
+      insert_every_timestep: 10
+      tolerance: 0.5
+    momentum_insertion:
+      type: "nie-velocity-imposition"
+      outermost_overlap_layer: 2
+      innermost_overlap_layer: 3
+    transfer_strategy:
+      type: "nie-transfer"
+      mass_flux_west: yes
+      mass_flux_east: yes
+      mass_flux_north: no
+      mass_flux_south: no
+      mass_flux_bottom: no
+      mass_flux_top: no
+      shift_by_timesteps: 0.5
+    boundary_force:
+      type: "zhou-boundary-force"
+      west: yes
+      east: yes
+      north: yes
+      south: yes
+      bottom: yes
+      top: yes
+      density: 0.81
+      temperature: 1.1
+    parallel_topology:
+      type: "xyz"
+    thermostat:
+      type: "outerLayers"
+      number_layers: 1
+
+molecular_dynamics:
+  molecule_configuration:
+    mass: 1.0
+    temperature: 1.27
+    sigma: 1.0
+    epsilon: 1.0
+    mean_velocity: "0.0 ; 0.0 ; 0.0"
+  mpi_configuration:
+    number_of_processes: "1 ; 1 ; 1"
+  simulation_configuration:
+    dt: 0.005
+    number_of_timesteps: 50
+    reorganise_memory_every_timestep: 20
+    compute_macroscopic_quantities_every_timestep: 0
+    fix_seed: no
+  vtk_configuration:
+    filename: "Molecules"
+    write_every_timestep: 0
+  adios2_configuration:
+    directory_name: "adiosOutput"
+    write_every_timestep: 0
+  checkpoint_configuration:
+    filename: "CheckpointSimpleMD"
+    write_every_timestep: 0
+  domain_configuration:
+    init_from_sequential_checkpoint: "CheckpointSimpleMD_10000_reflecting"
+    molecules_per_direction: "28 ; 28 ; 28"
+    domain_size: "30.0 ; 30.0 ; 30.0"
+    cutoff_radius: 2.2
+    domain_offset: "10.0 ; 10.0 ; 2.5"
+    k_B: 1.0
+    block_size: 100
+
+    bottom_south_west: "reflecting"
+    bottom_south: "reflecting"
+    bottom_south_east: "reflecting"
+    bottom_west: "reflecting"
+    bottom: "reflecting"
+    bottom_east: "reflecting"
+    bottom_north_west: "reflecting"
+    bottom_north: "reflecting"
+    bottom_north_east: "reflecting"
+    sout_west: "reflecting"
+    south: "reflecting"
+    south_east: "reflecting"
+    west: "reflecting"
+    east: "reflecting"
+    north_west: "reflecting"
+    north: "reflecting"
+    north_east: "reflecting"
+    top_south_west: "reflecting"
+    top_south: "reflecting"
+    top_south_east: "reflecting"
+    top_west: "reflecting"
+    top: "reflecting"
+    top_east: "reflecting"
+    top_north_west: "reflecting"
+    top_north: "reflecting"
+    top_north_east: "reflecting"
+  
+filter_pipeline:
+  per_instance:
+    output: "md"
+  post_multi_instance:
+    output: "md"
