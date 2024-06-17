@@ -1,0 +1,11 @@
+mamico_branch_tag_commit: master    # [<branch-name> or <tag> or <commit>]
+
+compile_on_compute_node: yes
+
+need_c_compiler: "module load gcc/gcc-12.1.0" # [yes or no or <exact-command-string>]
+need_cmake: False
+
+need_ls1: no
+ls1_branch_tag_commit: 0b89f6e      # [<branch-name> or <tag> or <commit>]
+
+need_eigen3: no
