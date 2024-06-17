@@ -1,0 +1,10 @@
+# FabMaMiCo Exec Template:
+cd $job_results
+$run_prefix
+
+cd $mamico_dir/$md5_checksum/build
+
+mpirun -np 2 ./couette
+
+/usr/bin/env > env.log
+echo "Finished execution batch script."
