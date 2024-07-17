@@ -1,0 +1,9 @@
+hsuper:
+  mamico_dir_template: "$home_path/MaMiCo"
+  job_wall_time: "0-0:05:00"
+  cores: 1
+  compile_on_login_node: yes
+  modules:
+    loaded: ["gcc/12.1.0", "cmake/3.23.1", "mpi/2021.10.0"]
+
+# jmToDo: write a nice config example for 2-3 machines for FabMaMiCo

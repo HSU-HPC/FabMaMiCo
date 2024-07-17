@@ -1,10 +1,29 @@
-# FabMaMiCo Exec Template:
+########################################
+## FabMaMiCo Compile Template:
+########################################
+
+# Change directory to job results
 cd $job_results
+
+# RUN PREFIX
 $run_prefix
 
-cd $mamico_dir/$md5_checksum/build
+##################################
+# Copy the files to build folder #
+##################################
+# cp -r $config_path/$config/* $mamico_dir/$mamico_checksum/build/
 
-mpirun -np 2 ./couette
+# CD to the build directory
+cd $mamico_dir/$mamico_checksum/build
 
-/usr/bin/env > env.log
-echo "Finished execution batch script."
+##############################
+# Run the couette simulation #
+##############################
+$run_command ./couette
+
+######################################################
+# Copy the result files back to the result directory #
+######################################################
+
+# Write the environment variables to a file
+/usr/bin/env > $job_results/env.log

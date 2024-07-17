@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# This source file is part of the FabSim software toolkit, which is distributed under the BSD 3-Clause license.
-# Please refer to LICENSE for detailed information regarding the licensing.
-#
-# This file contains FabSim definitions specific to FabDummy.
+import os
 
 try:
     from fabsim.base.fab import *
@@ -12,14 +7,13 @@ except ImportError:
 
 from fabsim.deploy.templates import template
 
-from plugins.FabMaMiCo.scripts.setup import MaMiCoSetup # ToDo: improve import (start with plugin-root)
-import pickle as pkl
-import copy
+from plugins.FabMaMiCo.scripts.main_configuration import MainConfiguration
+from plugins.FabMaMiCo.scripts.setup import Setup
 
 # Add local script, blackbox and template path.
 add_local_paths("FabMaMiCo")
 
-FabMaMiCo_path = get_plugin_path("FabMaMiCo")
+FabMaMiCo_plugin_path = get_plugin_path("FabMaMiCo")
 
 
 def populate_env_templates():
@@ -33,24 +27,7 @@ def populate_env_templates():
 
 
 @task
-def mamico_run(config: str, **args):
-    """
-    Run a single MaMiCo simulation.
-    This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
-    It then copies the necessary input files to the build folder and submits the job.
-    """
-    populate_env_templates()
-    mamico_install(config, **args)
-    # copy the couette.xml file to the build folder
-    run(f"cp {env.job_config_path}/couette.xml {env.mamico_dir}/{env.md5_checksum}/build/couette.xml")
-    # copy the checkpoint files to the build folder
-    run(f"cp {env.mamico_dir}/{env.md5_checksum}/examples/CheckpointSimpleMD_10000_periodic_0.checkpoint {env.mamico_dir}/{env.md5_checksum}/build/CheckpointSimpleMD_10000_periodic_0.checkpoint")
-    run(f"cp {env.mamico_dir}/{env.md5_checksum}/examples/CheckpointSimpleMD_10000_reflecting_0.checkpoint {env.mamico_dir}/{env.md5_checksum}/build/CheckpointSimpleMD_10000_reflecting_0.checkpoint")
-    # submit the job
-    job(dict(script='run', job_wall_time='0:15:0'), args)
-
-
-@task
+@load_plugin_env_vars("FabMaMiCo")
 def mamico_install(config: str, **args):
     """
     Transfer the MaMiCo source code to the remote machine and compile it with all its dependencies.
@@ -59,72 +36,147 @@ def mamico_install(config: str, **args):
     It then compiles the code on the remote machine, either on the login node or on a compute node.
     """
     populate_env_templates()
+    with_config(config)
     update_environment(args)
-    mamico_setup = MaMiCoSetup(FabMaMiCo_path, config)
-    mamico_setup.read_config()
-    mamico_setup.download_mamico()
-    mamico_setup.determine_md5()
-    update_environment(mamico_setup.config_mamico) # jmToDo: decide if this is necessary
-    with_config(config) # sets the config directory to be used locally and remotely
-    execute(put_configs, config)
-
-    # prepare installation directory for MaMiCo
-    run(f"mkdir -p {env.mamico_dir}")
-    
-    if mamico_setup.check_mamico_availability():
-        print("MaMiCo already installed.")
-        return
-
-    # transfer MaMiCo to remote host    
-    mamico_setup.transfer_to_remote_host()
-
-    # generate the command for compilation
-    env["compilation_command"] = mamico_setup.generate_compile_command()
-
-    # run/submit compilation job
-    if env.get("compile_mamico_on_login_node", False):
-        print("Compiling MaMiCo on login node:")
-        # update job_dispatch to bash
-        old_job_dispatch = env.get("job_dispatch")
-        print(old_job_dispatch)
-        update_environment({"job_dispatch": "bash"})
-    # submit job to compile MaMiCo
-    job(dict(script='compile', job_wall_time='0:15:0'), args)
-
-    # reset job_dispatch to its original value
-    if env.get("compile_mamico_on_login_node", False):
-        update_environment({"job_dispatch": old_job_dispatch})
+    # Read configuration
+    configuration = MainConfiguration(FabMaMiCo_plugin_path, config)
+    # Setup the MaMiCo according to the configuration
+    setup = Setup(FabMaMiCo_plugin_path, config, configuration)
+    # Prepare source codes locally
+    # This might also update the configuration parameters: mamico_branch_tag_commit, ls1_branch_tag_commit
+    setup.prepare_local()
+    checksum = configuration.generate_checksum()
+    env.update({ "mamico_checksum": checksum })
+    # Prepare source codes remotely
+    setup.prepare_remote()
+    # Compile the code
+    setup.compile(**args)
 
 
 @task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_run(config: str, **args):
+    """
+    Run a single MaMiCo simulation.
+    This task assumes that there exists a MaMiCo executable already.
+    It generates the batch script and submits the job.
+    """
+    populate_env_templates()
+    with_config(config)
+    update_environment(args)
+    # Read configuration
+    configuration = MainConfiguration(FabMaMiCo_plugin_path, config)
+    # Setup the MaMiCo according to the configuration
+    setup = Setup(FabMaMiCo_plugin_path, config, configuration)
+    # Prepare source codes locally
+    # This might also update the configuration parameters: mamico_branch_tag_commit, ls1_branch_tag_commit
+    setup.prepare_local()
+    checksum = configuration.generate_checksum()
+    env.update({ "mamico_checksum": checksum })
+
+    # Copy the configuration files to the remote machine
+    rsync_project(
+        remote_dir=os.path.join(env.mamico_dir, env.mamico_checksum, 'build'),
+        local_dir=os.path.join(FabMaMiCo_plugin_path, 'config_files', config, 'simulation')
+    )
+    # set run_command
+    env["run_command"] = f"mpirun -np {env.get('cores', 1)}" if configuration.configs['MaMiCo'].get('BUILD_WITH_MPI', False) else ""
+    # submit the job
+    job(dict(script='run', job_wall_time='0:15:0'), args)
+
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_all(config: str, **args):
+    """
+    Run a single MaMiCo simulation.
+    This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
+    It triggers both the `mamico_install` and `mamico_run` tasks.
+    """
+    mamico_install(config, **args)
+    # wait
+
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
 def mamico_list_installations(**args):
     """
     List all MaMiCo installations on the remote machine.
     """
     populate_env_templates()
     update_environment(args)
-    mamico_setup = MaMiCoSetup(FabMaMiCo_path, "")
-    mamico_setup.list_installations()
+    print_box(
+        f"Please wait until the MaMiCo installations on {env.host} are listed.\n"\
+        f"Note that the list contains installations at {env.mamico_dir} only.",
+        title=f"Listing MaMiCo installations on {env.host}",
+        color="pink1"
+    )
+    # Check for all md5 checksum folders that contain a build folder with a couette executable
+    installations = run(
+        f"find {env.mamico_dir} -type d \\"\
+        f"( -exec test -d {{}}/build \; -a -exec test -f {{}}/build/couette \; \) "\
+        f"-print",
+        capture=True
+    )
+    numInstallations = len(installations.split())
+    print_box(
+        "\n".join(installations.split()),
+        title=f"Found {numInstallations} installation{'s' if numInstallations != 1 else ''} on {env.host}",
+        color="green"
+    )
 
 
 @task
-def mamico_clean_installation(checksum: str, **args):
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_remove_installation(checksum: str, **args):
     """
-    Clean up a specific MaMiCo installation directory on the remote machine.
+    Remove a specific MaMiCo installation directory on the remote machine.
     """
     populate_env_templates()
     update_environment(args)
-    env["md5_checksum"] = checksum
-    mamico_setup = MaMiCoSetup(FabMaMiCo_path, "")
-    mamico_setup.clean_installation()
+    installations = run(f"ls {env.mamico_dir}", capture=True)
+    installations = installations.split()
+    if not checksum in installations:
+        print_box(
+            f"MaMiCo installation {checksum} does not exist on {env.host}.\n"\
+            f"There is no directory to be removed.",
+            title=f"MaMiCo installation not found!",
+            color="red",
+        )
+        sys. exit(1)
+    print_box(
+        f"Please wait until the MaMiCo installation {checksum} is removed.",
+        title=f"Cleaning MaMiCo installation on {env.host}",
+        color="pink1",
+    )
+    # Remove directory recursively
+    mamico_dir = os.path.join(env.mamico_dir, checksum)
+    run(f"rm -rf {mamico_dir}")
+    print_box(
+        f"{mamico_dir} was removed from {env.host}.",
+        title="Clean up successful",
+        border_style="green",
+    )
 
 
 @task
-def mamico_clean_installations(**args):
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_remove_all_installations(**args):
     """
-    Clean up all MaMiCo installations on the remote machine.
+    Remove all MaMiCo installations on the remote machine.
     """
     populate_env_templates()
     update_environment(args)
-    mamico_setup = MaMiCoSetup(FabMaMiCo_path, "")
-    mamico_setup.clean_installations()
+    print_box(
+        f"Please wait until all MaMiCo installations on {env.host} are removed.\n"\
+        f"Note that only installations at {env.mamico_dir} are removed.",
+        title="Cleaning MaMiCo installations",
+        color="pink1"
+    )
+    # Remove all directories recursively
+    run(f"rm -rf {env.mamico_dir}/*")
+    print_box(
+        f"MaMiCo installations were successfully removed from {env.host}.",
+        title="Clean up successful!",
+        color="green",
+    )

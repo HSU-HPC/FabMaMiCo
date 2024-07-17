@@ -1,8 +1,0 @@
-mamico_branch_tag_commit: master               # [<branch-name> or <tag> or <commit>]
-
-need_ls1: no
-ls1_branch_tag_commit: 0b89f6e                 # [<branch-name> or <tag> or <commit>]
-
-# compilation flags (cmake)
-need_eigen3: no
-use_mpi: no

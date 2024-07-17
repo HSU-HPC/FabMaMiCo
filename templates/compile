@@ -1,10 +1,26 @@
-# FabMaMiCo Exec Template:
+########################################
+## FabMaMiCo Compile Template:
+########################################
+
+# Change directory to job results
 cd $job_results
+
+# RUN PREFIX
 $run_prefix
 
-cd $mamico_dir/$md5_checksum
+##############################
+# Compile ls1 - if specified #
+##############################
+$compilation_command_ls1
 
-$compilation_command
+##############################
+# Compile MaMiCo             #
+##############################
+$compilation_command_mamico
 
-/usr/bin/env > env.log
-echo "Finished compilation batch script."
+# Copy the two checkpoint files to the build folder
+cp $mamico_dir/$mamico_checksum/examples/CheckpointSimpleMD_10000_periodic_0.checkpoint $mamico_dir/$mamico_checksum/build
+cp $mamico_dir/$mamico_checksum/examples/CheckpointSimpleMD_10000_reflecting_0.checkpoint $mamico_dir/$mamico_checksum/build
+
+# Write the environment variables to a file
+/usr/bin/env > $job_results/env.log

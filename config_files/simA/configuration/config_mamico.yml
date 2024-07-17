@@ -1,0 +1,17 @@
+mamico_branch_tag_commit: refactor2402-fixIdx0313-WIP               # [<branch-name> or <tag> or <commit>]
+
+use_ls1: no
+
+# compilation flags (for cmake)
+BUILD_TESTING: no
+BUILD_WITH_ADIOS2: no
+BUILD_WITH_EIGEN: no
+BUILD_WITH_LAMMPS: no
+BUILD_WITH_MPI: yes
+BUILD_WITH_OPENFOAM: no
+BUILD_WITH_PINT_DEBUG: no
+BUILD_WITH_PRECICE: no
+BUILD_WITH_PYBIND11: no
+CMAKE_BUILD_TYPE: 'DebugOptimized'
+MDDim: 'MDDim3'
+MD_SIM: 'SIMPLE_MD'

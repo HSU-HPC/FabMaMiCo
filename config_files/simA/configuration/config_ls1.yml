@@ -1,0 +1,3 @@
+ls1_branch_tag_commit: 097d622                 # [<branch-name> or <tag> or <commit>]
+
+ENABLE_MPI: on

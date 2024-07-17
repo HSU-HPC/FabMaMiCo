@@ -1,0 +1,38 @@
+site_name: FabMaMiCo
+site_description: An automation toolkit for the MaMiCo framework
+
+repo_url: https://github.com/HSU-HPC/FabMaMiCo
+repo_name: HSU-HPC/FabMaMiCo
+
+copyright: Johannes Michaelis, Piet Jarmatz, Derek Groen, Philipp Neumann, Olaf Schenk
+
+theme:
+  name: material
+  language: en
+  palette:
+    primary: blue grey
+  features:
+    - content.code.copy
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+
+nav:
+  - Introduction: index.md
+  - Machine Configuration:
+    - File Structure: machine-configuration/file-structure.md
+    - Parameters: machine-configuration/parameters.md
+    - SSH Multiplexing: machine-configuration/multiplexing.md
+    - Examples: machine-configuration/examples.md
+  - FabSim Commands: fabsim-commands.md
+  - MaMiCo Compilation: compilation/index.md
+  - MKDocs Info: docs-readme.md
