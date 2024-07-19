@@ -1,7 +1,7 @@
-mamico_branch_tag_commit: master               # [<branch-name> or <tag> or <commit>]
+mamico_branch_tag_commit: refactor2402-fixIdx0313-WIP               # [<branch-name> or <tag> or <commit>]
 
 need_ls1: no
-ls1_branch_tag_commit: 0b89f6e                 # [<branch-name> or <tag> or <commit>]
+ls1_branch_tag_commit: 6032ae49ad742f9bd595b7b83da38b6bb65b35a4                 # [<branch-name> or <tag> or <commit>]
 
 # compilation flags (cmake)
 need_eigen3: no
