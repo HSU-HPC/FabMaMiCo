@@ -8,8 +8,11 @@ cd $job_results
 # Run prefix
 $run_prefix
 
+# Change to the directory where the executable is located
+cd $mamico_dir/$mamico_checksum/build
+
 # Run the executable
-$run_command $mamico_dir/$mamico_checksum/build/couette
+$run_command ./couette
 
 # Save the environment variables
 /usr/bin/env > env.log

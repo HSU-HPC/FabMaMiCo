@@ -1,10 +1,24 @@
-# FabMaMiCo Exec Template:
+############################
+# FabMaMiCo Exec Template: #
+############################
+
+# Change to the directory where the job was submitted
 cd $job_results
+
+# Run prefix
 $run_prefix
 
-cd $mamico_dir/$md5_checksum
+# Change to the directory where the executable is located
+cd $mamico_dir/$mamico_checksum
 
+# Compile
 $compilation_command
 
+# Move compilation-info.yml into build-folder
+mv compilation_info.yml build/
+
+# Save the environment variables
 /usr/bin/env > env.log
+
+# Save the output
 echo "Finished compilation batch script."
