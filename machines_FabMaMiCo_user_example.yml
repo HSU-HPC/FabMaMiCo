@@ -1,0 +1,24 @@
+hsuper:
+  compile_on_login_node: yes
+  mamico_dir_template: "$home_path/MaMiCo"
+  job_wall_time: "0-0:15:00"
+  compile_threads: 16
+  cores: 1
+  corespernode: 1
+  modules:
+    loaded: ["gcc/12.1.0", "cmake/3.23.1", "mpi/2021.10.0"] # , "eigen/3.4.0"]
+
+cosma:
+  mamico_dir_template: "$home_path/MaMiCo"
+
+ants:
+  mamico_dir_template: "$home_path/MaMiCo"
+
+sofja:
+  mamico_dir_template: "$home_path/MaMiCo"
+
+fritz:
+  mamico_dir_template: "$home_path/MaMiCo"
+
+alex:
+  mamico_dir_template: "$home_path/MaMiCo"
