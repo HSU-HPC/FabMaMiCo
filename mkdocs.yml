@@ -26,8 +26,8 @@ markdown_extensions:
       alternate_style: true
   - admonition
 
-plugins:
-- open-in-new-tab
+# plugins:
+# - open-in-new-tab
 
 nav:
   - Introduction: index.md
