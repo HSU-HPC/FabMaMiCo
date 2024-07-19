@@ -2,6 +2,12 @@
 FabMaMiCo is a [FabSim3](https://fabsim3.readthedocs.io/) plugin for automated [MaMiCo](https://github.com/HSU-HPC/MaMiCo) simulations.
 It provides a simple setup for installing and running single and ensembles of MaMiCo simulations on remote machines.
 
+## Documentation
+
+Please refer to [the documentation](https://hsu-hpc.github.io/FabMaMiCo/).
+
+--------------------------------------------------------------------
+
 ## Installation
 Simply type `fabsim localhost install_plugin:FabMaMiCo` anywhere inside your FabSim3 install directory.
 
