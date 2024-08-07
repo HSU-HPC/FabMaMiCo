@@ -15,6 +15,7 @@ n_writes = 0
 domains = [
     {
         "name": "MD30",
+        # domain:
         "couette-test/domain/channelheight": 50,
         "mamico/macroscopic-cell-configuration/cell-size": "2.5 ; 2.5 ; 2.5",
         "mamico/macroscopic-cell-configuration/linked-cells-per-macroscopic-cell": "1 ; 1 ; 1",
@@ -22,12 +23,15 @@ domains = [
         "molecular-dynamics/domain-configuration/molecules-per-direction": "28 ; 28 ; 28",
         "molecular-dynamics/domain-configuration/domain-size": "30.0 ; 30.0 ; 30.0",
         "molecular-dynamics/domain-configuration/domain-offset": "10.0 ; 10.0 ; 2.5",
+        # molecular dynamics equilibration:
+        "couette-test/coupling/coupling-cycles": 1,
         "couette-test/microscopic-solver/equilibration-steps": 10001,
         "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMDGauss30",
         "molecular-dynamics/checkpoint-configuration/write-every-timestep": 10000,
     },
     {
         "name": "MD60",
+        # domain:
         "couette-test/domain/channelheight": 100,
         "mamico/macroscopic-cell-configuration/cell-size": "5.0 ; 5.0 ; 5.0",
         "mamico/macroscopic-cell-configuration/linked-cells-per-macroscopic-cell": "2 ; 2 ; 2",
@@ -35,6 +39,8 @@ domains = [
         "molecular-dynamics/domain-configuration/molecules-per-direction": "56 ; 56 ; 56",
         "molecular-dynamics/domain-configuration/domain-size": "60.0 ; 60.0 ; 60.0",
         "molecular-dynamics/domain-configuration/domain-offset": "20.0 ; 20.0 ; 5.0",
+        # molecular dynamics equilibration:
+        "couette-test/coupling/coupling-cycles": 1,
         "couette-test/microscopic-solver/equilibration-steps": 20001,
         "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMDGauss60",
         "molecular-dynamics/checkpoint-configuration/write-every-timestep": 20000,
