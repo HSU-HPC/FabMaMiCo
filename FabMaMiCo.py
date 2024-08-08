@@ -36,6 +36,20 @@ def populate_env_templates():
     update_environment(data)
 
 
+@task
+def fabmamico_test_installation(**args):
+    """
+    Test the FabMaMiCo installation by running this task.
+    """
+    update_environment(args)
+    rich_print(
+        Panel(
+            f"FabMaMiCo has been installed successfully.",
+            border_style="green",
+            expand=False,
+        )
+    )
+
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
