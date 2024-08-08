@@ -1,9 +1,7 @@
 import os
-
 from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
-
 
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
@@ -23,8 +21,7 @@ domains = [
         "molecular-dynamics/domain-configuration/molecules-per-direction": "28 ; 28 ; 28",
         "molecular-dynamics/domain-configuration/domain-size": "30.0 ; 30.0 ; 30.0",
         "molecular-dynamics/domain-configuration/domain-offset": "10.0 ; 10.0 ; 2.5",
-        # molecular dynamics equilibration:
-        "couette-test/coupling/coupling-cycles": 1,
+        # simulation:
         "couette-test/microscopic-solver/equilibration-steps": 10001,
         "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMDGauss30",
         "molecular-dynamics/checkpoint-configuration/write-every-timestep": 10000,
@@ -39,8 +36,7 @@ domains = [
         "molecular-dynamics/domain-configuration/molecules-per-direction": "56 ; 56 ; 56",
         "molecular-dynamics/domain-configuration/domain-size": "60.0 ; 60.0 ; 60.0",
         "molecular-dynamics/domain-configuration/domain-offset": "20.0 ; 20.0 ; 5.0",
-        # molecular dynamics equilibration:
-        "couette-test/coupling/coupling-cycles": 1,
+        # simulation:
         "couette-test/microscopic-solver/equilibration-steps": 20001,
         "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMDGauss60",
         "molecular-dynamics/checkpoint-configuration/write-every-timestep": 20000,
