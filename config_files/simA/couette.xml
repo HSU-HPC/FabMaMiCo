@@ -121,8 +121,8 @@
   <microscopic-solver
     type="md"
     temperature="1.1"
-    equilibration-steps="0"
-    number-md-simulations="4"
+    equilibration-steps="1000"
+    number-md-simulations="2"
     density="0.813037037"
   />
 
@@ -197,13 +197,11 @@
   <vtk-configuration filename="Molecules" write-every-timestep="0"></vtk-configuration>
   <adios2-configuration directory-name="adiosOutput" write-every-timestep="0"></adios2-configuration>
 
-  <checkpoint-configuration filename="CheckpointSimpleMD" write-every-timestep="0"></checkpoint-configuration>
+  <checkpoint-configuration filename="CheckpointSimpleMD" write-every-timestep="1000"></checkpoint-configuration>
 
   <!-- max density using molecules-per-direction ca. 0.9  /-->
   <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
   <domain-configuration
-    init-from-sequential-checkpoint="CheckpointSimpleMD_10000_reflecting"
-
     molecules-per-direction="28 ; 28 ; 28"
     domain-size="30.0 ; 30.0 ; 30.0"
     domain-offset="10.0 ; 10.0 ; 2.5"

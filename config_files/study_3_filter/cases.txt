@@ -1,0 +1,36 @@
+couette flow, mit verschiedenen cases
+
+MD30 im 50er Kanal
+MD60 in 100er Kanal
+
+verschiedene Wall-velocity 0.2, 0.4, 0.6, 0.8, 1.0
+
+alles mit oscillating_wall: 5
+
+equilibration-steps: 10000 for MD30, 20000 for MD60
+checkpoint nutzen (!)
+
+cell-size und linked cells nach szenario
+
+mpi-configuration number-of-processes auf 1 ; 1 ; 1
+
+
+FILTER:
+bei analyse: coupling 100-1000 auswerten (init)
+vtk: schreibt jedes 10. coupling cycle
+css: jedes coupling cycle output
+
+- gauss: 10  MD30 & MD60, jew. 5x wall_velocity     [2*5=10]
+- pod:  240  MD30 & MD60, jew. 5x wall_velocity, time-window-size:          [3, 5, 10, 20, 80]
+                                                 kmax:                      [1, 2, 3]
+                                                    [2*5*8*3=240]
+- nlm:  560  MD30 & MD60, jew. 5x wall_velocity, fixed sigsq_rel:           0.05
+                                                 fixed hsq_rel:             0.1
+                                                 variable time-window-size: [3, 5, 10, 20, 80]                         (kann bei 3 crashen)
+                                                    [2*5*5=50]
+             MD30 & MD60, jew. 5x wall_velocity, fixed time-window-size:    5
+                                                 variable sigsq_rel:        [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
+                                                 variable hsq:              [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]
+                                                    [2*5*7*7=490]
+
+schauen welcher sigsq und hsq optimal sind

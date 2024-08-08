@@ -7,8 +7,9 @@ the resulting files to the specified directory.
 """
 
 import itertools
-import jinja2
 import os
+
+import jinja2
 import yaml
 
 
