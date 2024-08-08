@@ -6,13 +6,12 @@ If variables are in brackets `<var>`, they are placeholders and need to be repla
 #### Connection
 ```yaml
 remote: "<host-url>"
-# The URL of the remote machine.
-# No default
+# The URL of the remote machine's login node.
 ```
 
 ```yaml
 manual_ssh: false
-# Flag to bypass paramiko and do direct remote SSH commands.
+# Flag to bypass paramiko and to execute direct remote SSH commands.
 ```
 
 ```yaml
@@ -27,65 +26,65 @@ manual_sshpass: false
 
 ```yaml
 ssh_monsoon_mode: false
-# Flag to use 'monsoon mode', which avoids rsync altogether and copies 
-# using recursive scp commands.
+# Flag to use 'monsoon mode', which avoids rsync and instead uses scp.
 ```
 
 #### Filesystem
 ```yaml
 home_path_template: "/home/$username"
-# The template for the home path of the user on the remote machine.
-# `$username` will be replaced by the username of the user.
-```
-
-```yaml
-runtime_path_template: "$home_path"
-# Path to runtime accessible filesystem
-# (default is same as build time) - jmToDo: OBSOLETE?
+# The template for the home directory of the user on the remote machine.
+# `$username` will be replaced by the value of the parameter `username`.
 ```
 
 ```yaml
 fabric_dir: "FabSim"
-# Name for the remote FabSim3 folder.
+# Name for the remote FabSim3 folder holding config_files, results and scripts.
 ```
 
 ```yaml
 remote_path_template: "$home_path/$fabric_dir"
-# Path to build filesystem folder
-# All user-defined values in these config dictionaries
-# will be interpolated via $foo.
+# Path to the FabSim3 folder on the remote machine.
 ```
 
-```yaml
-work_path_template: "$runtime_path/$fabric_dir"
-# Path to run filesystem folder
-```
+??? notes-more "more"
+    ```yaml
+    runtime_path_template: "$home_path"
+    # Path to runtime accessible filesystem
+    ```
 
-```yaml
-temp_path_template: "/tmp"
-# Default location of the temporary file path - jmToDo: OBSOLETE?
-```
+    ```yaml
+    temp_path_template: "/tmp/$username"
+    # Default location of the temporary file path
+    ```
 
-```yaml
-local_templates_path: ["$fabsim_root/deploy/templates"]
-# Default location for templates.
-```
+    ```yaml
+    work_path_template: "$runtime_path/$fabric_dir"
+    # Path to run filesystem folder
+    ```
 
-```yaml
-local_config_file_path: ["$fabsim_root/config_files"]
-# Default location for config_files.
-```
+    ```yaml
+    local_templates_path:
+    - "$fabsim_root/deploy/templates"
+    # Locations where to look for script templates.
+    ```
 
+    ```yaml
+    local_config_file_path:
+    - "$fabsim_root/config_files"
+    # Default location for local config_files.
+    # Gets populated with the config_files from the plugins.
+    ```
 
-#### Allocation
+#### Resource Allocation
 ```yaml
 nodes: 1
 # Default number of nodes.
+# This value might be overriden by the value of 'cores' divided by 'corespernode'.
 ```
 
 ```yaml
 corespernode: 1
-# Default number of cores per (supercomputer) node.
+# Default number of cores per node.
 ```
 
 ```yaml
@@ -95,7 +94,7 @@ cpuspertask: 1
 
 ```yaml
 nb_process: 1
-# Number of process when launch "run_ensemble" command.
+# Number of processes when launch "run_ensemble" command.
 ```
 
 ```yaml
@@ -129,13 +128,12 @@ stat: "qstat -u $username"
 ```
 
 ```yaml
-job_info_command: "< e.g.: squeue --jobs $jobID>"
+job_info_command: "<e.g.: squeue --jobs $jobID>"
 # Default command syntax for getting the job info.
-# No default
 ```
 
 ```yaml
-cancel_job_command: "qdel"
+cancel_job_command: "scancel $jobID"
 # Default command for cancelling jobs.
 ```
 
@@ -145,7 +143,6 @@ run_command: "mpirun -np $cores"
 ```
 
 ```yaml
-job_desc: "" # jmToDo: why here?
 job_name_template: '${config}_${machine_name}_${cores}${job_desc}'
 # Default naming scheme used to label FabSim3 jobs.
 ```
@@ -153,10 +150,8 @@ job_name_template: '${config}_${machine_name}_${cores}${job_desc}'
 #### Environment
 ```yaml
 venv : False
-# jmToDo: Loading virtual environment on the remote machine.
+# Loading virtual environment on the remote machine.
 ```
-
-
 
 
 #### Other
@@ -184,15 +179,11 @@ dry_run: False
 modules:
     all: []
     dummy: []
+    loaded: []
+    unloaded: []
 # Default Modules to load or unload on remote, grouped by scriptname
 #   (or 'all' if to be used by all scripts).
-# e.g. ['load cmake'].
-```
-
-#### Clarify
-```yaml
-python3_command: "python3"
-# Default command for Python3, jmToDo: OBSOLETE?
+# e.g. ['cmake'].
 ```
 
 
@@ -203,6 +194,22 @@ username: "<username>"
 # The username of the user on the remote machine.
 # No default
 ```
+
+
+```yaml
+local_results: "/home/john/msc/FabSim3/results"
+# The local path to the results folder.
+# No default
+```
+
+```yaml
+local_configs: "/home/john/msc/FabSim3/config_files"
+# The local path to the config_files folder.
+# No default
+```
+
+
+## Plugin-specific / Simulation-specific parameters
 
 ```yaml
 job_wall_time: "<job-wall-time>"
@@ -216,14 +223,5 @@ partition_name: "<partition-name>"
 # No default
 ```
 
-```yaml
-local_results: "/home/john/msc/FabSim3/results"
-# The local path to the results folder.
-# No default
-```
-
-```yaml
-local_configs: "/home/john/msc/FabSim3/config_files"
-# The local path to the config_files folder.
-# No default
-```
+This list is definitely not exhaustive.
+Please refer to parameters defined in the FabSim3 repository for more details.

@@ -1,42 +1,42 @@
 # SSH Multiplexing
 
-COSMA supercomputer, just to name one example, requires a passkey-password authentication.
-This means that every connection demands both a matching ssh-key-authentication and a separate password input afterwards to login.
+Some remote machines might require a passkey-password authentication.
+This means that every connection demands both a matching ssh-key-authentication and a separate password input afterwards to login successfully.
 
-This might become an issue, especially since FabSim is designed to run multiple tasks sequentially, however all of them require a separate authentication procedure.
-It is not feasible to enter the password for every single task like `rsync`, `ssh`, `scp`, etc.
+This might become an issue, especially since FabSim is designed to establish multiple ssh connections sequentially, however all of them require a separate authentication procedure.
+It is not feasible to enter the password for every single command like `rsync`, `scp`, etc.
 
-To overcome this issue, we can use the SSH multiplexing feature.
+To overcome this issue, we can use the SSH multiplexing feature, which is explained in detail in the (FabSim3 documentation)[https://fabsim3.readthedocs.io/en/latest/multiplex_setup/].
 
 ## SSH Multiplexing
 
-SSH multiplexing allows you to reuse an existing connection to a remote host, so you don't have to authenticate again.
+SSH multiplexing allows users to reuse an existing connection to a remote host, so they don't have to authenticate again.
 
-To enable SSH multiplexing, you need to add the following lines to your `~/.ssh/config` file:
+To enable SSH multiplexing, add the following lines to your `~/.ssh/config` file:
 
 ```sh
 Host cosma
     User    <username>
-    HostName login8.cosma.dur.ac.uk
+    HostName <hostname-url>
     IdentityFile ~/.ssh/id_rsa
     ControlPath ~/.ssh/controlmasters/%r@%h:%p
     ControlMaster auto
-    ControlPersist 10m </ 30m / 1h / yes>
+    ControlPersist yes
 ```
 
 This will create a master connection to the remote host, and all subsequent connections will use this master connection.
 
 The `ControlPersist` option specifies how long the master connection should be kept alive after the last connection is closed.
 The default value is `no`, which means the master connection will be closed as soon as the last connection is closed.
-You can set it to `yes` to keep the master connection alive indefinitely, or you can specify a time interval like `10m`, `30m`, `1h`, etc.
+The option `yes` keeps the master connection alive infinitely, but time intervals can also be defined: `10m`, `30m`, `1h`, etc.
 
-Make sure, the directory `~/.ssh/controlmasters/` exists, otherwise create it.
+The directory `~/.ssh/controlmasters/` must exist, otherwise please create it:
 ```sh
 mkdir -p ~/.ssh/controlmasters/
 ```
 
 ## Usage
-Once this is set up, you can connect to cosma with:
+Once this is set up, connect to the remote machine with:
 
 ```sh
 ssh cosma
@@ -44,7 +44,7 @@ ssh cosma
 
 After submitting the password, the master connection will be established and all subsequent connections will use this master connection.
 
-Is is important that in the `machines.yml` file, the `remote` is set to the `Host` name in the `~/.ssh/config` file, not the URL of the remote host.
+Is is important that in the `machines.yml` file, the parameter `remote` is set to the `Host` name in the `~/.ssh/config` file, not the URL of the remote host.
 
 ```yaml
 cosma:

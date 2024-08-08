@@ -26,25 +26,21 @@ fabsim -l/--list machines
 ```sh
 fabsim localhost avail_plugin
 # Prints the list of available plugins on localhost.
-# jmToDo: the <remote-machine> argument is not used in the function.
 ```
 
 ```sh
 fabsim localhost install_plugin:<plugin-name>
 # Installs the specified plugin on localhost.
-# jmToDo: the <remote-machine> argument is not used in the function.
 ```
 
 ```sh
 fabsim localhost update_plugin:<plugin-name>
 # Updates the specified plugin on localhost (pulls latest version from the repository).
-# jmToDo: the <remote-machine> argument is not used in the function.
 ```
 
 ```sh
 fabsim localhost remove_plugin:<plugin_name>
 # Removes the specified plugin from the remote machine.
-# jmToDo: the <remote_machine> argument is not used in the function.
 ```
 
 
