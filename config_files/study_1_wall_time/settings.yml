@@ -1,0 +1,29 @@
+mamico_branch_tag_commit: 36ec06728639550504dac9b03f17023d3cd7cd52
+
+need_ls1: yes
+ls1_branch_tag_commit: 663745bb88c8f85d9df7abb55b32c74bb7dad03a
+
+cmake_flags_mamico:
+  # BUILD_TESTING: off
+  # BUILD_WITH_ADIOS2: off
+  # BUILD_WITH_EIGEN: off
+  # BUILD_WITH_LAMMPS: off
+  BUILD_WITH_MPI: on
+  # BUILD_WITH_OPENFOAM: off
+  # BUILD_WITH_PINT_DEBUG: off
+  # BUILD_WITH_PRECICE: off
+  # BUILD_WITH_PYBIND11: off
+  CMAKE_BUILD_TYPE: "Release"
+  # CMAKE_INSTALL_PREFIX: "/usr/local"
+  # MDDim: "MDDim3"
+  MD_SIM: "LS1_MARDYN"
+
+cmake_flags_ls1:
+  ENABLE_ADIOS2: off
+  ENABLE_MPI: on
+  OPENMP: off
+  ENABLE_AUTOPAS: off
+  ENABLE_UNIT_TESTS: off
+  ENABLE_ALLLBL: off
+  MAMICO_COUPLING: on
+  MAMICO_SRC_DIR: "'..'"
