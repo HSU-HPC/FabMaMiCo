@@ -2,6 +2,8 @@
 # FabMaMiCo Exec Template: #
 ############################
 
+set -e
+
 # Change to the directory where the job was submitted
 cd $job_results
 
@@ -11,8 +13,11 @@ $run_prefix
 # Change to the directory where the executable is located
 cd $mamico_dir/$mamico_checksum
 
-# Compile
-$compilation_command
+# Compile ls1
+$compilation_command_ls1
+
+# Compile MaMiCo
+$compilation_command_mamico
 
 # Move compilation-info.yml into build-folder
 mv compilation_info.yml build/
