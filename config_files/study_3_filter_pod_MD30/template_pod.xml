@@ -122,7 +122,7 @@
     <microscopic-solver
       type="md"
       temperature="1.1"
-      equilibration-steps="0"
+      equilibration-steps="10000"
       number-md-simulations="1"
       density="0.813037037"
     />
@@ -203,8 +203,6 @@
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
-      init-from-sequential-checkpoint="CheckpointSimpleMDGauss30_0__10000"
-
       molecules-per-direction="28 ; 28 ; 28"
       domain-size="30.0 ; 30.0 ; 30.0"
       domain-offset="10.0 ; 10.0 ; 2.5"
