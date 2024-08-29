@@ -13,7 +13,7 @@ cmake_flags_mamico:
   # BUILD_WITH_PINT_DEBUG: off
   # BUILD_WITH_PRECICE: off
   # BUILD_WITH_PYBIND11: off
-  CMAKE_BUILD_TYPE: "Release"
+  CMAKE_BUILD_TYPE: "DebugOptimized"
   # CMAKE_INSTALL_PREFIX: "/usr/local"
   # MDDim: "MDDim3"
   MD_SIM: "LS1_MARDYN"
