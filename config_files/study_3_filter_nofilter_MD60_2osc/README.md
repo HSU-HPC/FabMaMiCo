@@ -19,17 +19,22 @@ The `template_nofilter.xml`-file serves as a template.
     python3 generate_ensemble.py
     ```
 
-5. Submit the jobs as an ensemble to the remote machine.
+2. Submit the jobs as an ensemble to the remote machine.
 <br>
     ```bash
     fabsim <remote-machine> mamico_run_ensemble:study_3_filter_nofilter_MD60_2osc
     ```
 
-6. Fetch the results from the remote machine.
+3. Fetch the results from the remote machine.
 <br>
     ```bash
     fabsim <remote-machine> fetch_results:regex="*study_3_filter_nofilter_MD60_2osc*"
     ```
+
+
+## Run with
+
+1600 cores (200 MD instances with 2;2;2 domain split)
 
 
 ## Runtime
