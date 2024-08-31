@@ -1,14 +1,16 @@
 import os
+
 from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
 
+
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
 
-
 ############################
 ### SCENARIO DEFINITIONS ###
+############################
 
 domains = [
     {
@@ -47,6 +49,7 @@ wall_velocities = [
     }
 ]
 
+# Generate all possible combinations of scenarios
 scenarios = []
 for dm, wv in product(domains, wall_velocities):
     combined_dict = {
@@ -56,8 +59,10 @@ for dm, wv in product(domains, wall_velocities):
     }
     scenarios.append(combined_dict)
 
+
 ##########################
 ### FILTER DEFINITIONS ###
+##########################
 
 gauss_configs = [
     {
