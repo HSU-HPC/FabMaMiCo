@@ -1,28 +1,29 @@
 import os
+
 from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
 
+
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
 
-
 ############################
 ### SCENARIO DEFINITIONS ###
+############################
 
 domains = [
     {
-        "name": "MD30",
+        "name": "MD60",
         # domain:
-        "couette-test/domain/channelheight": 50,
-        "mamico/macroscopic-cell-configuration/cell-size": "2.5 ; 2.5 ; 2.5",
-        "mamico/macroscopic-cell-configuration/linked-cells-per-macroscopic-cell": "1 ; 1 ; 1",
-        "molecular-dynamics/simulation-configuration/number-of-timesteps": 50,
-        "molecular-dynamics/domain-configuration/molecules-per-direction": "28 ; 28 ; 28",
-        "molecular-dynamics/domain-configuration/domain-size": "30.0 ; 30.0 ; 30.0",
-        "molecular-dynamics/domain-configuration/domain-offset": "10.0 ; 10.0 ; 2.5",
-
-    }
+        "couette-test/domain/channelheight": 100,
+        "mamico/macroscopic-cell-configuration/cell-size": "5.0 ; 5.0 ; 5.0",
+        "mamico/macroscopic-cell-configuration/linked-cells-per-macroscopic-cell": "2 ; 2 ; 2",
+        "molecular-dynamics/simulation-configuration/number-of-timesteps": 100,
+        "molecular-dynamics/domain-configuration/molecules-per-direction": "56 ; 56 ; 56",
+        "molecular-dynamics/domain-configuration/domain-size": "60.0 ; 60.0 ; 60.0",
+        "molecular-dynamics/domain-configuration/domain-offset": "20.0 ; 20.0 ; 5.0",
+    },
 ]
 
 wall_velocities = [
@@ -48,6 +49,7 @@ wall_velocities = [
     }
 ]
 
+# Generate all possible combinations of scenarios
 scenarios = []
 for dm, wv in product(domains, wall_velocities):
     combined_dict = {
@@ -57,8 +59,10 @@ for dm, wv in product(domains, wall_velocities):
     }
     scenarios.append(combined_dict)
 
+
 ##########################
 ### FILTER DEFINITIONS ###
+##########################
 
 pod_configs = [
     {
@@ -77,6 +81,7 @@ for pod in pod_configs:
             pod[key] = [pod[key]]
         keys, values = zip(*pod.items())
     pod_configs_all += [dict(zip(keys, v)) for v in product(*values)]
+
 
 ###############################################################################
 ## WRITE XML FILES

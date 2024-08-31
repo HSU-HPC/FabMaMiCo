@@ -22,10 +22,10 @@
           wall-velocity * cos(2PI * wall-oscillations * CYCLE / coupling-cycles)
     -->
     <domain
-      channelheight="50"
+      channelheight="GENERATED"
       wall-init-velocity="0.0 ; 0.0 ; 0.0"
       wall-init-cycles="0"
-      wall-velocity="0.5 ; 0.0 ; 0.0"
+      wall-velocity="GENERATED"
       wall-oscillations="5"
     />
 
@@ -144,8 +144,8 @@
   <mamico>
     <!-- "write-every-macroscopic-timestep" means CFD time step /-->
     <macroscopic-cell-configuration
-      cell-size="2.5 ; 2.5 ; 2.5"
-      linked-cells-per-macroscopic-cell="1 ; 1 ; 1"
+      cell-size="GENERATED"
+      linked-cells-per-macroscopic-cell="GENERATED"
       write-every-microscopic-timestep="0"
       microscopic-filename="MacroscopicCell_micro"
       write-every-macroscopic-timestep="0"
@@ -189,7 +189,7 @@
     <!-- TODO check fix-seed for mamico / USHER /-->
     <simulation-configuration
       dt="0.005"
-      number-of-timesteps="50"
+      number-of-timesteps="GENERATED"
       reorganise-memory-every-timestep="20"
       compute-macroscopic-quantities-every-timestep="0"
       fix-seed="yes"
@@ -203,9 +203,9 @@
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
-      molecules-per-direction="28 ; 28 ; 28"
-      domain-size="30.0 ; 30.0 ; 30.0"
-      domain-offset="10.0 ; 10.0 ; 2.5"
+      molecules-per-direction="GENERATED"
+      domain-size="GENERATED"
+      domain-offset="GENERATED"
       cutoff-radius="2.2"
       linked-cell-size="2.5 ; 2.5 ; 2.5"
       k_B="1.0"
@@ -234,7 +234,7 @@
 
       <my-pod filtered-values="macro-mass macro-momentum" input="md">
         <write-to-file location="raw-md.csv" />
-        <POD time-window-size="10-80:10" kmax="1-3:1" />
+        <POD time-window-size="GENERATED" kmax="GENERATED" />
         <write-to-file location="my-pod.csv" />
       </my-pod>
 

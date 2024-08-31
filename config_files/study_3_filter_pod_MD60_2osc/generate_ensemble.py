@@ -1,14 +1,16 @@
 import os
+
 from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
 
+
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
 
-
 ############################
 ### SCENARIO DEFINITIONS ###
+############################
 
 domains = [
     {
@@ -47,6 +49,7 @@ wall_velocities = [
     }
 ]
 
+# Generate all possible combinations of scenarios
 scenarios = []
 for dm, wv in product(domains, wall_velocities):
     combined_dict = {
@@ -56,8 +59,10 @@ for dm, wv in product(domains, wall_velocities):
     }
     scenarios.append(combined_dict)
 
+
 ##########################
 ### FILTER DEFINITIONS ###
+##########################
 
 pod_configs = [
     {
@@ -77,6 +82,7 @@ for pod in pod_configs:
         keys, values = zip(*pod.items())
     pod_configs_all += [dict(zip(keys, v)) for v in product(*values)]
 
+
 ###############################################################################
 ## WRITE XML FILES
 ###############################################################################
@@ -94,4 +100,4 @@ for sc, filt in product(scenarios, pod_configs_all):
     alter_xml(script_dir_path, combined_dict, write=dest_filepath)
     n_writes += 1
 
-print(n_writes)
+print(f"Generated {n_writes} XML-files in the SWEEP directory.")
