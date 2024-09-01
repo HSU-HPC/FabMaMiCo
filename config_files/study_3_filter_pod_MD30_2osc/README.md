@@ -40,4 +40,4 @@ The `template_gauss.xml`-file serves as a template.
 
 ## Runtime
 
-The simulation runs for about TODO hours/minutes.
+The simulation runs for about 30 minutes.
