@@ -123,7 +123,7 @@ def get_df_from_cfd_vtk(folder, shape):
                 # print(f"Cell {cell}: {n} - {list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell))}")
                 numpy_array[row] = [i] + list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell)) + [pos[0] - min_x, pos[1] - min_y, pos[2] - min_z]
                 row += 1
-        # row should be 216 (6x6x6)
+        # row should be 216 (6x6x6) or 1728 (12x12x12)
 
     df = pd.DataFrame(
         numpy_array,
@@ -138,40 +138,53 @@ def get_df_from_cfd_vtk(folder, shape):
 if __name__ == "__main__":
     # SETUP
     scenario = 30
-    wall_velocity = 0.8
-    
-    RUN = f"gauss_MD{scenario}_wv{str(wall_velocity).replace('.', '')}"
-    CONFIG = "fabmamico_study_3_filter_gauss_MD30_hsuper_1_36_mamico_run_ensemble"
-    FOLDER = os.path.join( "/home/jo/repos/FabSim/results", CONFIG, "RUNS", RUN)
+    wall_velocity = 0.6
+    sig_sq = 0.10
+    h_sq = 0.01
+    time_window_size = 5
+    k_max = 2
+
+    RUN = f"nlm_MD{scenario}_wv{str(wall_velocity).replace('.', '')}_sigsq010_hsq{str(h_sq).replace('.','')}_tw0{time_window_size}"
 
     print("+---------------------------------------")
     print(f"| Processing RUN '{RUN}'")
     print("+---------------------------------------")
 
-    md_raw = get_df_from_filter_csv(FOLDER, "0_raw-md.csv")
-    my_gauss_2d = get_df_from_filter_csv(FOLDER, "0_my-gauss-2d.csv")
-    my_gauss_3d = get_df_from_filter_csv(FOLDER, "0_my-gauss-3d.csv")
-    print(md_raw.shape) # (91*216, 8) = (19656, 8)
+    folder = os.path.join(script_path, "RUNS", RUN)
 
-    cfd = get_df_from_cfd_vtk(FOLDER, shape=md_raw.shape)
+    md_prefilter = get_df_from_filter_csv(folder, "0_prefilter.csv")
+    print(md_prefilter.shape) # (91*216, 8) = (19656, 8)
+
+    # md_raw.set_index(['iteration', 'idx_x', 'idx_y', 'idx_z'], inplace=True)
+    # md_raw = md_raw.reorder_levels(order=['iteration', 'idx_x', 'idx_y', 'idx_z'])
+    # my_pod.set_index(['iteration', 'idx_x', 'idx_y', 'idx_z'], inplace=True)
+    # my_pod = my_pod.reorder_levels(order=['iteration', 'idx_x', 'idx_y', 'idx_z'])
+    print(md_prefilter[:36])
+    # access at iteration 100, cell 0, 0, 0
+    # print(md_raw.loc[100, 0, 0, 0])
+
+    cfd = get_df_from_cfd_vtk(folder, shape=md_prefilter.shape)
+    # cfd.set_index(['iteration', 'idx_x', 'idx_y', 'idx_z'], inplace=True)
+    # cfd = cfd.reorder_levels(order=['iteration', 'idx_x', 'idx_y', 'idx_z'])
     print(cfd)
 
+    # diff = md_raw - cfd
+    # print(diff)
+
+    # err = md_raw['mom_x'] / md_raw['mass'] - cfd['vel_x']
     x_idx, y_idx = 3, 3
     vtk = cfd.loc[(cfd['idx_x'] == x_idx) & (cfd['idx_y'] == y_idx)]
+    
+    csv_prefilter = md_prefilter.loc[(md_prefilter['idx_x'] == x_idx) & (md_prefilter['idx_y'] == y_idx)]
 
-    csv_raw = md_raw.loc[(md_raw['idx_x'] == x_idx) & (md_raw['idx_y'] == y_idx)]
-    csv_raw['vel_x'] = csv_raw['mom_x'] / csv_raw['mass']
-    csv_2d = my_gauss_2d.loc[(my_gauss_2d['idx_x'] == x_idx) & (my_gauss_2d['idx_y'] == y_idx)]
-    csv_2d['vel_x'] = csv_2d['mom_x'] / csv_2d['mass']
-    csv_3d = my_gauss_3d.loc[(my_gauss_3d['idx_x'] == x_idx) & (my_gauss_3d['idx_y'] == y_idx)]
-    csv_3d['vel_x'] = csv_3d['mom_x'] / csv_3d['mass']
+    csv_prefilter['vel_x'] = csv_prefilter['mom_x'] # / csv_prefilter['mass']
 
-    fig, axs = plt.subplots(4, 1, figsize=(16, 12))
+    fig, axs = plt.subplots(2, 1, figsize=(16, 8))
     iterations = np.arange(100, 1001, 10)
 
-    titles = ["Lattice-Boltzmann CFD", "Pre-Gauss-Filter MD", "Gauss-2D-Filter MD", "Gauss-3D-Filter MD"]
+    titles = ["Lattice-Boltzmann CFD", "Prefilter (after Gauss) MD"]
 
-    for k, d_f in enumerate([vtk, csv_raw, csv_2d, csv_3d]):
+    for k, d_f in enumerate([vtk, csv_prefilter]):
         for i in range(6):
             z_vals = d_f[d_f['idx_z'] == i]['vel_x'].to_numpy()
             axs[k].plot(iterations, z_vals, label=f"z_idx = {i}", color=f"C{i}")
@@ -180,7 +193,7 @@ if __name__ == "__main__":
         axs[k].set_ylabel("Velocity")
         axs[k].set_title(titles[k])
         axs[k].legend()
-    fig.suptitle(f"Velocity in x-direction for cell ({x_idx},{y_idx},z), wall-velocity={wall_velocity}", fontsize=16)
+    fig.suptitle(f"Velocity in x-direction for cell (3,3,z)\nwall-velocity={wall_velocity}, sig_sq={sig_sq}, h_sq={h_sq}, time-window-size={time_window_size}, kmax={k_max}", fontsize=16)
     fig.tight_layout()
     plt.show()
     fig.savefig(os.path.join(script_path, "velocity_x_3_3.pdf"), format="pdf")

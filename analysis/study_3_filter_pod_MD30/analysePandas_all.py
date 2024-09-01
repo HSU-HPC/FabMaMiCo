@@ -11,7 +11,7 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_df_from_filter_csv(folder, filename):
-    print(f"Processing '{filename}'")
+    # print(f"Processing '{filename}'")
 
     ########################################
     # Load the data
@@ -72,7 +72,7 @@ def get_df_from_cfd_vtk(folder, shape):
 
     for i, f in sorted(vtk_files):
         index = i // 10 - 10
-        print(f"Processing '{f}' with index {index}")
+        # print(f"Processing '{f}' with index {index}")
 
         reader : vtkStructuredGridReader = vtkStructuredGridReader()
         reader.SetFileName(os.path.join(folder, f))
@@ -123,7 +123,7 @@ def get_df_from_cfd_vtk(folder, shape):
                 # print(f"Cell {cell}: {n} - {list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell))}")
                 numpy_array[row] = [i] + list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell)) + [pos[0] - min_x, pos[1] - min_y, pos[2] - min_z]
                 row += 1
-        # row should be 216 (6x6x6)
+        # row should be 216 (6x6x6) or 1728 (12x12x12)
 
     df = pd.DataFrame(
         numpy_array,
@@ -138,51 +138,70 @@ def get_df_from_cfd_vtk(folder, shape):
 if __name__ == "__main__":
     # SETUP
     scenario = 30
-    wall_velocity = 0.8
-    
-    RUN = f"gauss_MD{scenario}_wv{str(wall_velocity).replace('.', '')}"
-    CONFIG = "fabmamico_study_3_filter_gauss_MD30_hsuper_1_36_mamico_run_ensemble"
-    FOLDER = os.path.join( "/home/jo/repos/FabSim/results", CONFIG, "RUNS", RUN)
+    # wall_velocities = [0.2, 0.4, 0.6, 0.8, 1.0]
+    # time_window_sizes = [10, 20, 30, 40, 50, 60, 70, 80]
+    # k_maxs = [1, 2, 3]
 
-    print("+---------------------------------------")
-    print(f"| Processing RUN '{RUN}'")
-    print("+---------------------------------------")
+    wall_velocities = [0.2, 0.6, 1.0]
+    time_window_sizes = [10, 40, 80]
+    k_maxs = [1, 3]
 
-    md_raw = get_df_from_filter_csv(FOLDER, "0_raw-md.csv")
-    my_gauss_2d = get_df_from_filter_csv(FOLDER, "0_my-gauss-2d.csv")
-    my_gauss_3d = get_df_from_filter_csv(FOLDER, "0_my-gauss-3d.csv")
-    print(md_raw.shape) # (91*216, 8) = (19656, 8)
+    results_raw = np.zeros(shape=(5, 8, 3))
+    results_pod = np.zeros(shape=(5, 8, 3))
 
-    cfd = get_df_from_cfd_vtk(FOLDER, shape=md_raw.shape)
-    print(cfd)
+    read_files = False
 
-    x_idx, y_idx = 3, 3
-    vtk = cfd.loc[(cfd['idx_x'] == x_idx) & (cfd['idx_y'] == y_idx)]
+    if read_files:
+        for wv in wall_velocities:
+            for tws in time_window_sizes:
+                for km in k_maxs:
+                    
+                    RUN = f"pod_MD{scenario}_wv{str(wv).replace('.', '')}_tw{tws}_kmax{km}"
+                    
+                    print("+---------------------------------------")
+                    print(f"| Processing RUN '{RUN}'")
+                    print("+---------------------------------------")
 
-    csv_raw = md_raw.loc[(md_raw['idx_x'] == x_idx) & (md_raw['idx_y'] == y_idx)]
-    csv_raw['vel_x'] = csv_raw['mom_x'] / csv_raw['mass']
-    csv_2d = my_gauss_2d.loc[(my_gauss_2d['idx_x'] == x_idx) & (my_gauss_2d['idx_y'] == y_idx)]
-    csv_2d['vel_x'] = csv_2d['mom_x'] / csv_2d['mass']
-    csv_3d = my_gauss_3d.loc[(my_gauss_3d['idx_x'] == x_idx) & (my_gauss_3d['idx_y'] == y_idx)]
-    csv_3d['vel_x'] = csv_3d['mom_x'] / csv_3d['mass']
+                    folder = os.path.join(script_path, "RUNS", RUN)
 
-    fig, axs = plt.subplots(4, 1, figsize=(16, 12))
-    iterations = np.arange(100, 1001, 10)
+                    md_raw = get_df_from_filter_csv(folder, "0_raw-md.csv")
+                    my_pod = get_df_from_filter_csv(folder, "0_my-pod.csv")
+                    cfd = get_df_from_cfd_vtk(folder, shape=md_raw.shape)
 
-    titles = ["Lattice-Boltzmann CFD", "Pre-Gauss-Filter MD", "Gauss-2D-Filter MD", "Gauss-3D-Filter MD"]
+                    # calculate differences
+                    cfd['diff_raw'] = (cfd['vel_x'].to_numpy() - (md_raw['mom_x'].to_numpy() / md_raw['mass'].to_numpy())) ** 2
+                    cfd['diff_pod'] = (cfd['vel_x'].to_numpy() - (my_pod['mom_x'].to_numpy() / my_pod['mass'].to_numpy())) ** 2
 
-    for k, d_f in enumerate([vtk, csv_raw, csv_2d, csv_3d]):
-        for i in range(6):
-            z_vals = d_f[d_f['idx_z'] == i]['vel_x'].to_numpy()
-            axs[k].plot(iterations, z_vals, label=f"z_idx = {i}", color=f"C{i}")
+                    diff_raw = cfd['diff_raw'].mean()
+                    diff_pod = cfd['diff_pod'].mean()
 
-        axs[k].set_xlabel("Iteration")
-        axs[k].set_ylabel("Velocity")
-        axs[k].set_title(titles[k])
-        axs[k].legend()
-    fig.suptitle(f"Velocity in x-direction for cell ({x_idx},{y_idx},z), wall-velocity={wall_velocity}", fontsize=16)
+                    results_raw[wall_velocities.index(wv), time_window_sizes.index(tws), k_maxs.index(km)] = diff_raw
+                    results_pod[wall_velocities.index(wv), time_window_sizes.index(tws), k_maxs.index(km)] = diff_pod
+
+        np.save("results_raw_debug.npy", results_raw)
+        np.save("results_pod_debug.npy", results_pod)
+
+    results_raw = np.load("results_raw.npy")
+    results_pod = np.load("results_pod.npy")
+    print(results_raw)
+    print(results_pod)
+
+    fig, axs = plt.subplots(1, 2, figsize=(16, 10))
+
+    markers = ['o', 's', 'x']
+
+    for i, w_v in enumerate(wall_velocities):
+        for k, k_m in enumerate(k_maxs):
+            axs[0].plot(time_window_sizes, results_raw[i, :, k], label=f"wv={w_v}, kmax={k_m}", color=f"C{i}", marker=markers[k])
+            axs[1].plot(time_window_sizes, results_pod[i, :, k], label=f"wv={w_v}, kmax={k_m}", color=f"C{i}", marker=markers[k])
+    axs[0].legend()
+    axs[0].set_xlabel("Time Window Size")
+    axs[0].set_ylabel("Mean Squared Error")
+    axs[1].legend()
+    axs[1].set_xlabel("Time Window Size")
+    axs[1].set_ylabel("Mean Squared Error")
+    fig.suptitle(f"POD", fontsize=16)
     fig.tight_layout()
     plt.show()
-    fig.savefig(os.path.join(script_path, "velocity_x_3_3.pdf"), format="pdf")
-
+    
     sys.exit(0)

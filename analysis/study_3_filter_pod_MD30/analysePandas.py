@@ -7,6 +7,10 @@ from matplotlib import pyplot as plt
 from typing import *
 from vtk import *
 
+from fabsim.deploy.templates import *
+from fabsim.deploy.machines import *
+from fabsim.base.fab import *
+
 script_path = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -123,7 +127,7 @@ def get_df_from_cfd_vtk(folder, shape):
                 # print(f"Cell {cell}: {n} - {list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell))}")
                 numpy_array[row] = [i] + list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell)) + [pos[0] - min_x, pos[1] - min_y, pos[2] - min_z]
                 row += 1
-        # row should be 216 (6x6x6)
+        # row should be 216 (6x6x6) or 1728 (12x12x12)
 
     df = pd.DataFrame(
         numpy_array,
@@ -138,40 +142,54 @@ def get_df_from_cfd_vtk(folder, shape):
 if __name__ == "__main__":
     # SETUP
     scenario = 30
-    wall_velocity = 0.8
-    
-    RUN = f"gauss_MD{scenario}_wv{str(wall_velocity).replace('.', '')}"
-    CONFIG = "fabmamico_study_3_filter_gauss_MD30_hsuper_1_36_mamico_run_ensemble"
+    wall_velocity = 1.0
+    time_window_size = 80
+    k_max = 1
+
+    RUN = f"pod_MD{scenario}_wv{str(wall_velocity).replace('.', '')}_tw{time_window_size}_kmax{k_max}"
+    CONFIG = "fabmamico_study_3_filter_pod_MD30_2osc_hsuper_1_36_mamico_run_ensemble"
     FOLDER = os.path.join( "/home/jo/repos/FabSim/results", CONFIG, "RUNS", RUN)
+    print(FOLDER)
 
     print("+---------------------------------------")
     print(f"| Processing RUN '{RUN}'")
     print("+---------------------------------------")
 
     md_raw = get_df_from_filter_csv(FOLDER, "0_raw-md.csv")
-    my_gauss_2d = get_df_from_filter_csv(FOLDER, "0_my-gauss-2d.csv")
-    my_gauss_3d = get_df_from_filter_csv(FOLDER, "0_my-gauss-3d.csv")
+    my_pod = get_df_from_filter_csv(FOLDER, "0_my-pod.csv")
     print(md_raw.shape) # (91*216, 8) = (19656, 8)
 
+    # md_raw.set_index(['iteration', 'idx_x', 'idx_y', 'idx_z'], inplace=True)
+    # md_raw = md_raw.reorder_levels(order=['iteration', 'idx_x', 'idx_y', 'idx_z'])
+    # my_pod.set_index(['iteration', 'idx_x', 'idx_y', 'idx_z'], inplace=True)
+    # my_pod = my_pod.reorder_levels(order=['iteration', 'idx_x', 'idx_y', 'idx_z'])
+    print(md_raw[:36])
+    # access at iteration 100, cell 0, 0, 0
+    # print(md_raw.loc[100, 0, 0, 0])
+
     cfd = get_df_from_cfd_vtk(FOLDER, shape=md_raw.shape)
+    # cfd.set_index(['iteration', 'idx_x', 'idx_y', 'idx_z'], inplace=True)
+    # cfd = cfd.reorder_levels(order=['iteration', 'idx_x', 'idx_y', 'idx_z'])
     print(cfd)
 
+    # diff = md_raw - cfd
+    # print(diff)
+
+    # err = md_raw['mom_x'] / md_raw['mass'] - cfd['vel_x']
     x_idx, y_idx = 3, 3
     vtk = cfd.loc[(cfd['idx_x'] == x_idx) & (cfd['idx_y'] == y_idx)]
-
+    
     csv_raw = md_raw.loc[(md_raw['idx_x'] == x_idx) & (md_raw['idx_y'] == y_idx)]
     csv_raw['vel_x'] = csv_raw['mom_x'] / csv_raw['mass']
-    csv_2d = my_gauss_2d.loc[(my_gauss_2d['idx_x'] == x_idx) & (my_gauss_2d['idx_y'] == y_idx)]
-    csv_2d['vel_x'] = csv_2d['mom_x'] / csv_2d['mass']
-    csv_3d = my_gauss_3d.loc[(my_gauss_3d['idx_x'] == x_idx) & (my_gauss_3d['idx_y'] == y_idx)]
-    csv_3d['vel_x'] = csv_3d['mom_x'] / csv_3d['mass']
+    csv_pod = my_pod.loc[(my_pod['idx_x'] == x_idx) & (my_pod['idx_y'] == y_idx)]
+    csv_pod['vel_x'] = csv_pod['mom_x'] / csv_pod['mass']
 
-    fig, axs = plt.subplots(4, 1, figsize=(16, 12))
+    fig, axs = plt.subplots(3, 1, figsize=(16, 10))
     iterations = np.arange(100, 1001, 10)
 
-    titles = ["Lattice-Boltzmann CFD", "Pre-Gauss-Filter MD", "Gauss-2D-Filter MD", "Gauss-3D-Filter MD"]
+    titles = ["Lattice-Boltzmann CFD", "Pre-POD-Filter MD", "Post-POD-Filter MD"]
 
-    for k, d_f in enumerate([vtk, csv_raw, csv_2d, csv_3d]):
+    for k, d_f in enumerate([vtk, csv_raw, csv_pod]):
         for i in range(6):
             z_vals = d_f[d_f['idx_z'] == i]['vel_x'].to_numpy()
             axs[k].plot(iterations, z_vals, label=f"z_idx = {i}", color=f"C{i}")
@@ -180,7 +198,7 @@ if __name__ == "__main__":
         axs[k].set_ylabel("Velocity")
         axs[k].set_title(titles[k])
         axs[k].legend()
-    fig.suptitle(f"Velocity in x-direction for cell ({x_idx},{y_idx},z), wall-velocity={wall_velocity}", fontsize=16)
+    fig.suptitle(f"Velocity in x-direction for cell (3,3,z), wall-velocity={wall_velocity}, time-window-size={time_window_size}, kmax={k_max}", fontsize=16)
     fig.tight_layout()
     plt.show()
     fig.savefig(os.path.join(script_path, "velocity_x_3_3.pdf"), format="pdf")

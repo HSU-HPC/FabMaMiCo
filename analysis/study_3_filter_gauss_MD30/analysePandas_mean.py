@@ -123,7 +123,7 @@ def get_df_from_cfd_vtk(folder, shape):
                 # print(f"Cell {cell}: {n} - {list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell))}")
                 numpy_array[row] = [i] + list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell)) + [pos[0] - min_x, pos[1] - min_y, pos[2] - min_z]
                 row += 1
-        # row should be 216 (6x6x6)
+        # row should be 216 (6x6x6) or 1728 (12x12x12)
 
     df = pd.DataFrame(
         numpy_array,
@@ -156,15 +156,16 @@ if __name__ == "__main__":
     cfd = get_df_from_cfd_vtk(FOLDER, shape=md_raw.shape)
     print(cfd)
 
-    x_idx, y_idx = 3, 3
-    vtk = cfd.loc[(cfd['idx_x'] == x_idx) & (cfd['idx_y'] == y_idx)]
+    vtk = cfd.groupby(['iteration', 'idx_z'])['vel_x'].mean().reset_index()
 
-    csv_raw = md_raw.loc[(md_raw['idx_x'] == x_idx) & (md_raw['idx_y'] == y_idx)]
-    csv_raw['vel_x'] = csv_raw['mom_x'] / csv_raw['mass']
-    csv_2d = my_gauss_2d.loc[(my_gauss_2d['idx_x'] == x_idx) & (my_gauss_2d['idx_y'] == y_idx)]
-    csv_2d['vel_x'] = csv_2d['mom_x'] / csv_2d['mass']
-    csv_3d = my_gauss_3d.loc[(my_gauss_3d['idx_x'] == x_idx) & (my_gauss_3d['idx_y'] == y_idx)]
-    csv_3d['vel_x'] = csv_3d['mom_x'] / csv_3d['mass']
+    csv_raw = md_raw['vel_x'] = md_raw['mom_x'] / md_raw['mass']
+    csv_raw = md_raw.groupby(['iteration', 'idx_z'])['vel_x'].mean().reset_index()
+
+    csv_2d = my_gauss_2d['vel_x'] = my_gauss_2d['mom_x'] / my_gauss_2d['mass']
+    csv_2d = my_gauss_2d.groupby(['iteration', 'idx_z'])['vel_x'].mean().reset_index()
+
+    csv_3d = my_gauss_3d['vel_x'] = my_gauss_3d['mom_x'] / my_gauss_3d['mass']
+    csv_3d = my_gauss_3d.groupby(['iteration', 'idx_z'])['vel_x'].mean().reset_index()
 
     fig, axs = plt.subplots(4, 1, figsize=(16, 12))
     iterations = np.arange(100, 1001, 10)
@@ -180,9 +181,9 @@ if __name__ == "__main__":
         axs[k].set_ylabel("Velocity")
         axs[k].set_title(titles[k])
         axs[k].legend()
-    fig.suptitle(f"Velocity in x-direction for cell ({x_idx},{y_idx},z), wall-velocity={wall_velocity}", fontsize=16)
+    fig.suptitle(f"Velocity in x-direction for averaged z-slices, wall-velocity={wall_velocity}", fontsize=16)
     fig.tight_layout()
     plt.show()
-    fig.savefig(os.path.join(script_path, "velocity_x_3_3.pdf"), format="pdf")
+    fig.savefig(os.path.join(script_path, "velocity_x_mean.pdf"), format="pdf")
 
     sys.exit(0)

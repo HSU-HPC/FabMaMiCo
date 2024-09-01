@@ -26,9 +26,9 @@ def get_df_from_filter_csv(folder, filename):
 
     ########################################
     # Filter iterations >= 100
-    df = df[df["iteration"] >= 100]
+    #df = df[df["iteration"] >= 100]
     # Filter by every 10th iteration
-    df = df[df["iteration"] % 10 == 0]
+    #df = df[df["iteration"] % 10 == 0]
 
     ########################################
     # Extract scenario values
@@ -123,7 +123,7 @@ def get_df_from_cfd_vtk(folder, shape):
                 # print(f"Cell {cell}: {n} - {list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell))}")
                 numpy_array[row] = [i] + list(densities.GetTuple(cell)) + list(velocities.GetTuple(cell)) + [pos[0] - min_x, pos[1] - min_y, pos[2] - min_z]
                 row += 1
-        # row should be 216 (6x6x6)
+        # row should be 216 (6x6x6) or 1728 (12x12x12)
 
     df = pd.DataFrame(
         numpy_array,
@@ -138,40 +138,31 @@ def get_df_from_cfd_vtk(folder, shape):
 if __name__ == "__main__":
     # SETUP
     scenario = 30
-    wall_velocity = 0.8
+    wall_velocity = 1.0
     
-    RUN = f"gauss_MD{scenario}_wv{str(wall_velocity).replace('.', '')}"
-    CONFIG = "fabmamico_study_3_filter_gauss_MD30_hsuper_1_36_mamico_run_ensemble"
+    RUN = f"nofilter_MD{scenario}_wv{str(wall_velocity).replace('.', '')}"
+    CONFIG = "fabmamico_study_3_filter_nofilter_MD30_2osc_hsuper_1_36_mamico_run_ensemble"
     FOLDER = os.path.join( "/home/jo/repos/FabSim/results", CONFIG, "RUNS", RUN)
 
     print("+---------------------------------------")
     print(f"| Processing RUN '{RUN}'")
     print("+---------------------------------------")
 
-    md_raw = get_df_from_filter_csv(FOLDER, "0_raw-md.csv")
-    my_gauss_2d = get_df_from_filter_csv(FOLDER, "0_my-gauss-2d.csv")
-    my_gauss_3d = get_df_from_filter_csv(FOLDER, "0_my-gauss-3d.csv")
+    md_raw = get_df_from_filter_csv(FOLDER, "0_prefilter.csv")
     print(md_raw.shape) # (91*216, 8) = (19656, 8)
 
-    cfd = get_df_from_cfd_vtk(FOLDER, shape=md_raw.shape)
-    print(cfd)
+    # cfd = get_df_from_cfd_vtk(FOLDER, shape=md_raw.shape)
+    # print(cfd)
 
-    x_idx, y_idx = 3, 3
-    vtk = cfd.loc[(cfd['idx_x'] == x_idx) & (cfd['idx_y'] == y_idx)]
-
-    csv_raw = md_raw.loc[(md_raw['idx_x'] == x_idx) & (md_raw['idx_y'] == y_idx)]
-    csv_raw['vel_x'] = csv_raw['mom_x'] / csv_raw['mass']
-    csv_2d = my_gauss_2d.loc[(my_gauss_2d['idx_x'] == x_idx) & (my_gauss_2d['idx_y'] == y_idx)]
-    csv_2d['vel_x'] = csv_2d['mom_x'] / csv_2d['mass']
-    csv_3d = my_gauss_3d.loc[(my_gauss_3d['idx_x'] == x_idx) & (my_gauss_3d['idx_y'] == y_idx)]
-    csv_3d['vel_x'] = csv_3d['mom_x'] / csv_3d['mass']
+    csv_raw = md_raw['vel_x'] = md_raw['mom_x'] / md_raw['mass']
+    csv_raw = md_raw.groupby(['iteration', 'idx_z'])['vel_x'].mean().reset_index()
 
     fig, axs = plt.subplots(4, 1, figsize=(16, 12))
-    iterations = np.arange(100, 1001, 10)
+    iterations = np.arange(0, 101, 1)
 
     titles = ["Lattice-Boltzmann CFD", "Pre-Gauss-Filter MD", "Gauss-2D-Filter MD", "Gauss-3D-Filter MD"]
 
-    for k, d_f in enumerate([vtk, csv_raw, csv_2d, csv_3d]):
+    for k, d_f in enumerate([csv_raw]):
         for i in range(6):
             z_vals = d_f[d_f['idx_z'] == i]['vel_x'].to_numpy()
             axs[k].plot(iterations, z_vals, label=f"z_idx = {i}", color=f"C{i}")
@@ -180,9 +171,9 @@ if __name__ == "__main__":
         axs[k].set_ylabel("Velocity")
         axs[k].set_title(titles[k])
         axs[k].legend()
-    fig.suptitle(f"Velocity in x-direction for cell ({x_idx},{y_idx},z), wall-velocity={wall_velocity}", fontsize=16)
+    fig.suptitle(f"Velocity in x-direction for averaged z-slices, wall-velocity={wall_velocity}", fontsize=16)
     fig.tight_layout()
     plt.show()
-    fig.savefig(os.path.join(script_path, "velocity_x_3_3.pdf"), format="pdf")
+    fig.savefig(os.path.join(script_path, "velocity_x_mean.pdf"), format="pdf")
 
     sys.exit(0)
