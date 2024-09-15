@@ -203,7 +203,7 @@
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
-      init-from-sequential-checkpoint="CheckpointSimpleMD30_0__20000"
+      init-from-sequential-checkpoint="CheckpointSimpleMD30_0__10000"
 
       molecules-per-direction="GENERATED"
       domain-size="GENERATED"
