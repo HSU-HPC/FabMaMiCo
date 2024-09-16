@@ -106,7 +106,8 @@ venv.bak/
 # Temporary files
 tmp/
 
-# Config Checkpoings
-config_files/**/*.checkpoint
-
 machines_FabMaMiCo_user.yml
+
+**/SWEEP*
+
+**/RUNS*
