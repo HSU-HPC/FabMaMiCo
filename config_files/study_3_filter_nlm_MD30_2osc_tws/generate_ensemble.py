@@ -106,4 +106,4 @@ for sc, filt in product(scenarios, nlm_configs_all):
     alter_xml(script_dir_path, combined_dict, write=dest_filepath)
     n_writes += 1
 
-print(n_writes)
+print(f"Generated {n_writes} XML-files in the SWEEP directory.")

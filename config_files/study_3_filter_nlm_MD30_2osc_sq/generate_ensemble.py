@@ -23,7 +23,6 @@ domains = [
         "molecular-dynamics/domain-configuration/molecules-per-direction": "28 ; 28 ; 28",
         "molecular-dynamics/domain-configuration/domain-size": "30.0 ; 30.0 ; 30.0",
         "molecular-dynamics/domain-configuration/domain-offset": "10.0 ; 10.0 ; 2.5",
-
     }
 ]
 
@@ -106,4 +105,4 @@ for sc, filt in product(scenarios, nlm_configs_all):
     alter_xml(script_dir_path, combined_dict, write=dest_filepath)
     n_writes += 1
 
-print(n_writes)
+print(f"Generated {n_writes} XML-files in the SWEEP directory.")

@@ -82,7 +82,7 @@
       type="lb"
       viscosity="2.14"
       number-of-processes="1 ; 1 ; 1"
-      plot-every-timestep="10"
+      plot-every-timestep="0"
       init-advance-cycles="0"
       foam-setup-directory="/home/helene/Dokumente/mamico-dev/coupling/tests/build_couette"
       foam-setup-folder="FoamSetup"
@@ -203,7 +203,7 @@
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
-      init-from-sequential-checkpoint="CheckpointSimpleMD30_0__20000"
+      init-from-sequential-checkpoint="CheckpointSimpleMD30_0__10000"
 
       molecules-per-direction="GENERATED"
       domain-size="GENERATED"
@@ -248,6 +248,10 @@
       <nlm-junction input="md prefilter" filtered-values="macro-mass macro-momentum">
         <NLM time-window-size="GENERATED" sigsq="10" hsq="20" sigsq_rel="GENERATED" hsq_rel="GENERATED"/>
       </nlm-junction>
+
+      <postfilter filtered-values="macro-mass macro-momentum" input="nlm-junction">
+        <write-to-file location="postfilter.csv"/>
+      </postfilter>
 
     </post-multi-instance>
 
