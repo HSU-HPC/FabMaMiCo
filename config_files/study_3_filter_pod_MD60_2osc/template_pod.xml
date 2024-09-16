@@ -82,7 +82,7 @@
       type="lb"
       viscosity="2.14"
       number-of-processes="1 ; 1 ; 1"
-      plot-every-timestep="10"
+      plot-every-timestep="0"
       init-advance-cycles="0"
       foam-setup-directory="/home/helene/Dokumente/mamico-dev/coupling/tests/build_couette"
       foam-setup-folder="FoamSetup"
@@ -122,7 +122,7 @@
     <microscopic-solver
       type="md"
       temperature="1.1"
-      equilibration-steps="20000"
+      equilibration-steps="0"
       number-md-simulations="1"
       density="0.813037037"
     />
@@ -203,6 +203,8 @@
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
+      init-from-sequential-checkpoint="CheckpointSimpleMD60_0__20000"
+
       molecules-per-direction="GENERATED"
       domain-size="GENERATED"
       domain-offset="GENERATED"
