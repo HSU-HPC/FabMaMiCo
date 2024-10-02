@@ -13,7 +13,7 @@ The MD domain is initialized with 20,000 equilibration steps.
 ## Steps to reproduce
 
 1. Generate the input files for the case study by running the `generate_ensemble.py`-script.
-It will place 18 configurations in the `SWEEP`-directory.
+It will place 18 (9x2) configurations in the `SWEEP`-directory.
 The `template_gauss.xml`-file serves as a template.
 
     ```bash
