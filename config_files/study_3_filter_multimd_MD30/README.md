@@ -23,18 +23,19 @@ The `template_gauss.xml`-file serves as a template.
 2. Submit the jobs as an ensemble to the remote machine.
 <br>
     ```bash
-    fabsim <remote-machine> mamico_run_ensemble:study_3_filter_multimd_MD30
+    fabsim hsuper mamico_run_ensemble:study_3_filter_multimd_MD30,cores=1600,job_wall_time="00:40:00",partition_name="medium"
     ```
 
 3. Fetch the results from the remote machine.
 <br>
     ```bash
-    fabsim <remote-machine> fetch_results:regex="*study_3_filter_multimd_MD30*"
+    fabsim hsuper fetch_results:regex="*study_3_filter_multimd_MD30*"
     ```
 
 
-## Run with
+## Running with
 
+HSUper
 1600 cores (200 MD instances with 2;2;2 domain split)
 
 
