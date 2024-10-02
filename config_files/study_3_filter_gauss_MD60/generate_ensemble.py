@@ -51,7 +51,7 @@ for dm, osc, wv in product(domains, oscillations, wall_velocities):
         **dm,
         **osc,
         **wv,
-        "name": f"{dm['name']}_{wv['name']}"
+        "name": f"{dm['name']}_{osc['name']}_{wv['name']}"
     }
     scenarios.append(combined_dict)
 
