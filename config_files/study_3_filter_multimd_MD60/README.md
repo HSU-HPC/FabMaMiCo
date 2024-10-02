@@ -23,7 +23,7 @@ The `template_gauss.xml`-file serves as a template.
 2. Submit the jobs as an ensemble to the remote machine.
 <br>
     ```bash
-    fabsim hsuper mamico_run_ensemble:study_3_filter_multimd_MD60,cores=1600,job_wall_time="12:00:00",partition_name="medium"
+    fabsim hsuper mamico_run_ensemble:study_3_filter_multimd_MD60,cores=1600,job_wall_time="04:00:00",partition_name="medium"
     ```
 
 3. Fetch the results from the remote machine.
@@ -41,4 +41,4 @@ HSUper
 
 ## Runtime
 
-The simulation runs for about 10-15 minutes.
+The simulation runs for about 3 hours.
