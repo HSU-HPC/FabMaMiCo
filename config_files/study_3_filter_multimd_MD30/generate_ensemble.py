@@ -40,8 +40,8 @@ oscillations = [
 wall_vel = np.arange(0.2, 1.9, 0.2) # up to 1.8 (inclusive)
 wall_velocities = [
     {
-        "name": f"wv{str(wv.round(2)).replace('.','')}",
-        "couette-test/domain/wall-velocity": f"{wv} ; 0.0 ; 0.0",
+        "name": f"wv{str(wv.round(1)).replace('.','')}",
+        "couette-test/domain/wall-velocity": f"{wv.round(1)} ; 0.0 ; 0.0",
     } for wv in wall_vel
 ]
 
