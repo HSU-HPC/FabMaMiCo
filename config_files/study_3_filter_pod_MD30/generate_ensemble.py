@@ -1,9 +1,8 @@
 import os
-
 from itertools import product
 
+import numpy as np
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
-
 
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
@@ -27,36 +26,33 @@ domains = [
     }
 ]
 
+oscillations = [
+    {
+        "name": "2osc",
+        "couette-test/domain/wall-oscillations": "2"
+    },
+    {
+        "name": "5osc",
+        "couette-test/domain/wall-oscillations": "5"
+    }
+]
+
+wall_vel = np.arange(0.2, 1.9, 0.2) # up to 1.8 (inclusive)
 wall_velocities = [
     {
-        "name": "wv02",
-        "couette-test/domain/wall-velocity": "0.2 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv04",
-        "couette-test/domain/wall-velocity": "0.4 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv06",
-        "couette-test/domain/wall-velocity": "0.6 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv08",
-        "couette-test/domain/wall-velocity": "0.8 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv10",
-        "couette-test/domain/wall-velocity": "1.0 ; 0.0 ; 0.0",
-    }
+        "name": f"wv{str(wv.round(1)).replace('.','')}",
+        "couette-test/domain/wall-velocity": f"{wv.round(1)} ; 0.0 ; 0.0",
+    } for wv in wall_vel
 ]
 
 # Generate all possible combinations of scenarios
 scenarios = []
-for dm, wv in product(domains, wall_velocities):
+for dm, osc, wv in product(domains, oscillations, wall_velocities):
     combined_dict = {
         **dm,
+        **osc,
         **wv,
-        "name": f"{dm['name']}_{wv['name']}"
+        "name": f"{dm['name']}_{osc['name']}_{wv['name']}"
     }
     scenarios.append(combined_dict)
 
