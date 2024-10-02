@@ -1,11 +1,11 @@
-# STUDY-3: NLM filters - MD30 - 2 oscillations - sig_sq & h_sq
+# STUDY-3: NLM filters - MD30 - sig_sq & h_sq
 
 
 ## Description
 
 This case study investigates the influence of NLM filters on the simulation results.
-We are using a **MD30** scenario here, with **wall-velocities 0.2, 0.4, 0.6, 0.8, and 1.0**.
-The moving wall is located at the bottom of the domain and performs **2 harmonic oscillations** during the 1,000 coupling cycles.
+We are using two scenarios,**MD30** and **MD60**, with **wall-velocities 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8**.
+The moving wall is located at the bottom of the domain and performs **either 2 or 5 harmonic oscillations** during the 1,000 coupling cycles.
 
 The MD domain is initialized with 10,000 equilibration steps.
 
@@ -13,7 +13,7 @@ The MD domain is initialized with 10,000 equilibration steps.
 ## Steps to reproduce
 
 1. Generate the input files for the case study by running the `generate_ensemble.py`-script.
-It will place 5 configurations in the `SWEEP`-directory.
+It will place 2178 (2x9x11x11) configurations in the `SWEEP`-directory.
 The `template_nlm.xml`-file serves as a template.
 
     ```bash
@@ -23,13 +23,13 @@ The `template_nlm.xml`-file serves as a template.
 2. Submit the jobs as an ensemble to the remote machine.
 <br>
     ```bash
-    fabsim <remote-machine> mamico_run_ensemble:study_3_filter_nlm_MD30_2osc_sq
+    fabsim <remote-machine> mamico_run_ensemble:study_3_filter_nlm_MD30_sq
     ```
 
 3. Fetch the results from the remote machine.
 <br>
     ```bash
-    fabsim <remote-machine> fetch_results:regex="*study_3_filter_nlm_MD30_2osc_sq*"
+    fabsim <remote-machine> fetch_results:regex="*study_3_filter_nlm_MD30_sq*"
     ```
 
 

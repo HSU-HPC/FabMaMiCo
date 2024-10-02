@@ -1,3 +1,4 @@
+import numpy as np
 import os
 
 from itertools import product
@@ -26,36 +27,33 @@ domains = [
     }
 ]
 
+oscillations = [
+    {
+        "name": "2osc",
+        "couette-test/domain/wall-oscillations": "2"
+    },
+    {
+        "name": "5osc",
+        "couette-test/domain/wall-oscillations": "5"
+    }
+]
+
+wall_vel = np.arange(0.2, 1.9, 0.2) # up to 1.8 (inclusive)
 wall_velocities = [
     {
-        "name": "wv02",
-        "couette-test/domain/wall-velocity": "0.2 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv04",
-        "couette-test/domain/wall-velocity": "0.4 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv06",
-        "couette-test/domain/wall-velocity": "0.6 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv08",
-        "couette-test/domain/wall-velocity": "0.8 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv10",
-        "couette-test/domain/wall-velocity": "1.0 ; 0.0 ; 0.0",
-    }
+        "name": f"wv{str(wv.round(2)).replace('.','')}",
+        "couette-test/domain/wall-velocity": f"{wv} ; 0.0 ; 0.0",
+    } for wv in wall_vel
 ]
 
 # Generate all possible combinations of scenarios
 scenarios = []
-for dm, wv in product(domains, wall_velocities):
+for dm, osc, wv in product(domains, oscillations, wall_velocities):
     combined_dict = {
         **dm,
+        **osc,
         **wv,
-        "name": f"{dm['name']}_{wv['name']}"
+        "name": f"{dm['name']}_{osc['name']}_{wv['name']}"
     }
     scenarios.append(combined_dict)
 
@@ -68,8 +66,8 @@ nlm_configs = [
     {
         "name": "nlm",
         "template": "template_nlm.xml",
-        "filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel": [0.0125, 0.025, 0.05, 0.1, 0.2, 0.4],
-        "filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel": [0.0125, 0.025, 0.05, 0.1, 0.2, 0.4],
+        "filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel": np.linspace(0.0, 1.0, 11).tolist(),
+        "filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel": np.linspace(0.0, 1.0, 11).tolist(),
         "filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size": 5
     }
 ]
@@ -96,9 +94,9 @@ for sc, filt in product(scenarios, nlm_configs_all):
         **sc,
         **filt,
         "name": f"{filt['name']}_{sc['name']}_"\
-                f"sigsq{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel']:.4f}_"\
-                f"hsq{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel']:.4f}_"\
-                f"tw{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size']:02d}"
+                f"sigsqrel{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel']:.4f}_"\
+                f"hsqrel{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel']:.4f}_"\
+                f"tws{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size']:02d}"
     }
     combined_dict['name'] = combined_dict['name'].replace(".", "")
     dest_filepath = os.path.join(script_dir_path, "SWEEP", combined_dict['name'])
