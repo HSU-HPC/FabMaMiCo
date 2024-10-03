@@ -1,9 +1,7 @@
 import os
-
 from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
-
 
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
