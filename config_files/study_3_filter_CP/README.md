@@ -3,9 +3,8 @@
 
 ## Description
 
-In this case-study, we will examine the effect of different filters on the simulation results.
 There are two scenarios, MD30 and MD60, which are based on the same initial configuration.
-For both of the scenarios, the scripts will create a checkpoint file, which will be used in the case-studies.
+For both of the scenarios, the scripts will create a checkpoint file, which will be used in the case studies.
 
 ## Information
 
@@ -21,30 +20,30 @@ The simulation will only perform equilibration steps and generate a checkpoint f
 | molecular-dynamics/domain-configuration/domain-size                     | "30.0 ; 30.0 ; 30.0"        | "60.0 ; 60.0 ; 60.0"        |
 | molecular-dynamics/domain-configuration/domain-offset                   | "10.0 ; 10.0 ; 2.5"         | "20.0 ; 20.0 ; 5.0"         |
 | couette-test/microscopic-solver/equilibration-steps                     | 10001                       | 20001                       |
-| molecular-dynamics/checkpoint-configuration/filename                    | "CheckpointSimpleMDGauss30" | "CheckpointSimpleMDGauss60" |
+| molecular-dynamics/checkpoint-configuration/filename                    | "CheckpointSimpleMD30"      | "CheckpointSimpleMD60"      |
 | molecular-dynamics/checkpoint-configuration/write-every-timestep        | 10000                       | 20000                       |
 
 
 ## Steps to reproduce
 
-1. Run the `populate.py`-script to generate the input files for the two scenarios MD30 and MD60.
+1. Run the `generate_ensemble.py`-script to generate the input files for the two scenarios MD30 and MD60.
    This creates the `SWEEP`-directory with the configurations.
 <br>
     ```bash
-    python populate.py
+    python generate_ensemble.py
     ```
 
 2. Submit a job ensemble to the remote machine.
-   This will generate the checkpoint file for each scenario `CheckpointSimpleMDGauss30_10000_0.checkpoint` and `CheckpointSimpleMDGauss60_10000_0.checkpoint`.
+   This will generate the checkpoint file for each scenario `CheckpointSimpleMD30_10000_0.checkpoint` and `CheckpointSimpleMD60_20000_0.checkpoint`.
 <br>
     ```bash
-    fabsim <remote-machine> mamico_run_ensemble:study_3_filter_gauss:CP
+    fabsim hsuper mamico_run_ensemble:study_3_filter_gauss:CP
     ```
 
 3. Fetch the results from the remote machine, amongst which is the checkpoint-file.
 <br>
     ```bash
-    fabsim <remote-machine> fetch_results
+    fabsim hsuper fetch_results regex="*study_3_filter_CP*"
     ```
 
-4. Place the checkpoint files into other configuration directories.
+4. Place the checkpoint files into other configuration directories - they are already included as part of the repository.

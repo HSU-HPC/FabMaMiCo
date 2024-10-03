@@ -1,14 +1,16 @@
 import os
+
 from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
 
+
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
 
-
 ############################
 ### SCENARIO DEFINITIONS ###
+############################
 
 domains = [
     {
@@ -23,7 +25,7 @@ domains = [
         "molecular-dynamics/domain-configuration/domain-offset": "10.0 ; 10.0 ; 2.5",
         # simulation:
         "couette-test/microscopic-solver/equilibration-steps": 10001,
-        "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMDGauss30",
+        "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMD30",
         "molecular-dynamics/checkpoint-configuration/write-every-timestep": 10000,
     },
     {
@@ -38,7 +40,7 @@ domains = [
         "molecular-dynamics/domain-configuration/domain-offset": "20.0 ; 20.0 ; 5.0",
         # simulation:
         "couette-test/microscopic-solver/equilibration-steps": 20001,
-        "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMDGauss60",
+        "molecular-dynamics/checkpoint-configuration/filename": "CheckpointSimpleMD60",
         "molecular-dynamics/checkpoint-configuration/write-every-timestep": 20000,
     },
 ]
@@ -48,11 +50,12 @@ scenarios = domains
 
 ##########################
 ### FILTER DEFINITIONS ###
+##########################
 
 gauss_configs = [
     {
         "name": "gauss",
-        "template": "template_gauss_CP.xml",
+        "template": "template_CP.xml",
     }
 ]
 
@@ -73,4 +76,4 @@ for sc, filt in product(scenarios, gauss_configs):
     alter_xml(script_dir_path, combined_dict, write=dest_filepath)
     n_writes += 1
 
-print(n_writes)
+print(f"Generated {n_writes} XML-files in the SWEEP directory.")
