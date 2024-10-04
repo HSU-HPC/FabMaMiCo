@@ -38,6 +38,7 @@ class MaMiCoSetup():
         self.settings: Settings = settings
         self.local_tmp_path: str = os.path.join(self.plugin_path, 'tmp')
         self.local_mamico_path: str = os.path.join(self.plugin_path, 'tmp', 'MaMiCo')
+        self.local_openfoam_path: str = os.path.join(self.plugin_path, 'tmp', 'OpenFoam')
 
     def prepare_mamico_locally(self) -> str:
         """
@@ -184,7 +185,7 @@ class MaMiCoSetup():
             )
             return self._get_latest_commit(directory=os.path.join(self.local_mamico_path, "ls1"))
         else:
-            # Remove openFOAM folder if not needed
+            # Remove ls1 folder if not needed
             shutil.rmtree(os.path.join(self.local_mamico_path, "ls1"), ignore_errors=True)
             # Recreate empty folder ls1
             os.makedirs(os.path.join(self.local_mamico_path, "ls1"), exist_ok=True)
@@ -192,101 +193,94 @@ class MaMiCoSetup():
 
     # def prepare_openfoam_locally(self, need_openfoam: bool = False) -> str:
     #     """
-    #     Download OpenFOAM's dependencies from github.
-    #     Download OpenFOAM from github if not already available locally.
-    #     Check out the given branch/tag/commit.
+    #     Download OpenFOAM if not already available locally.
 
     #     Returns:
-    #         str: The latest commit hash of OpenFOAM
+    #         None
     #     """
 
     #     if need_openfoam:
-    #         # If the user wants to use openFOAM, check if the user specified
-    #         #   a branch/tag/commit for openFOAM, otherwise use default
-    #         openfoam_branch_tag_commit = self.settings.get('openfoam_branch_tag_commit', None)
-
-        
-
-
-
-    #     # Check whether OpenFOAM folder is already available locally
-    #     if not os.path.isdir(self.local_mamico_path):
-    #         # Download  and checkout the given branch/tag/commit
+    #         # Check whether OpenFOAM folder is already available locally
+    #         if not os.path.isdir(self.local_openfoam_path) or not os.path.isfile(os.path.join(self.local_openfoam_path, "OpenFoam.tgz")):
+    #             # Download  and checkout the given branch/tag/commit
+    #             rich_print(
+    #                 Panel(
+    #                     f"Please wait until the OpenFoam archive is available locally.",
+    #                     title="[pink1]Downloading OpenFoam[/pink1]",
+    #                     border_style="pink1",
+    #                     expand=False,
+    #                 )
+    #             )
+    #             # Download OpenFoam archive
+    #             local(
+    #                 f"mkdir -p {self.local_openfoam_path}",
+    #                 capture=True
+    #             )
+    #             local(
+    #                 f"curl -L https://dl.openfoam.com/source/v2206/OpenFOAM-v2206.tgz > {self.local_openfoam_path}/OpenFoam.tgz",
+    #             )
+    #             local(
+    #                 f"tar -xvzf OpenFoam.tgz",
+    #                 capture=True
+    #             )
+    #             local("rm OpenFoam.tgz")
+    #         else:
+    #             # OpenFoam is already downloaded locally
+    #             # Checkout to master to be able to pull latest changes
+    #             #   (this is not possible with checked out tags/commits)
+    #             rich_print(
+    #                 Panel(
+    #                     f"Please wait until branch/tag/commit '{mamico_branch_tag_commit}' "\
+    #                     f"is updated and checked out.",
+    #                     title="[pink1]Pulling latest MaMiCo changes[/pink1]",
+    #                     border_style="pink1",
+    #                     expand=False,
+    #                 )
+    #             )
+    #             local(
+    #                 "git reset --hard",
+    #                 cwd=self.local_mamico_path,
+    #                 capture=True
+    #             )
+    #             local(
+    #                 "git checkout master",
+    #                 cwd=self.local_mamico_path,
+    #                 capture=True
+    #             )
+    #             # Pull the latest changes and all branches/tags/commits
+    #             local(
+    #                 "git pull",
+    #                 cwd=self.local_mamico_path,
+    #                 capture=True
+    #             )
+    #             # Checkout the given branch/tag/commit
+    #             local(
+    #                 f"git checkout {mamico_branch_tag_commit}",
+    #                 cwd=self.local_mamico_path,
+    #                 capture=True
+    #             )
+    #         # Determine the latest commit hash
+    #         mamico_commit = self._get_latest_commit(directory=self.local_mamico_path)
+    #         detail_text = ""
+    #         if mamico_commit != mamico_branch_tag_commit:
+    #             detail_text = f"\n - commit: '{mamico_commit}'."
+    #         # Print a message that MaMiCo is up-to-date
     #         rich_print(
     #             Panel(
-    #                 f"Please wait until branch/tag/commit '{mamico_branch_tag_commit}' "\
-    #                 f"is available locally.",
-    #                 title="[pink1]Downloading MaMiCo[/pink1]",
-    #                 border_style="pink1",
+    #                 f"MaMiCo branch/tag/commit '{mamico_branch_tag_commit}' is up-to-date."\
+    #                 f"{detail_text}",
+    #                 title="[green]MaMiCo is now locally available[/green]",
+    #                 border_style="green",
     #                 expand=False,
     #             )
     #         )
-    #         # Clone MaMiCo from GitHub
-    #         local(
-    #             f"git clone https://github.com/HSU-HPC/MaMiCo.git {self.local_mamico_path}",
-    #             capture=True
-    #         )
-    #         local(
-    #             "git reset --hard",
-    #             cwd=self.local_mamico_path,
-    #             capture=True
-    #         )
-    #         local(
-    #             f"git checkout {mamico_branch_tag_commit}",
-    #             cwd=self.local_mamico_path,
-    #             capture=True
-    #         )
+    #         return mamico_commit
     #     else:
-    #         # MaMiCo is already downloaded locally
-    #         # Checkout to master to be able to pull latest changes
-    #         #   (this is not possible with checked out tags/commits)
-    #         rich_print(
-    #             Panel(
-    #                 f"Please wait until branch/tag/commit '{mamico_branch_tag_commit}' "\
-    #                 f"is updated and checked out.",
-    #                 title="[pink1]Pulling latest MaMiCo changes[/pink1]",
-    #                 border_style="pink1",
-    #                 expand=False,
-    #             )
-    #         )
-    #         local(
-    #             "git reset --hard",
-    #             cwd=self.local_mamico_path,
-    #             capture=True
-    #         )
-    #         local(
-    #             "git checkout master",
-    #             cwd=self.local_mamico_path,
-    #             capture=True
-    #         )
-    #         # Pull the latest changes and all branches/tags/commits
-    #         local(
-    #             "git pull",
-    #             cwd=self.local_mamico_path,
-    #             capture=True
-    #         )
-    #         # Checkout the given branch/tag/commit
-    #         local(
-    #             f"git checkout {mamico_branch_tag_commit}",
-    #             cwd=self.local_mamico_path,
-    #             capture=True
-    #         )
-    #     # Determine the latest commit hash
-    #     mamico_commit = self._get_latest_commit(directory=self.local_mamico_path)
-    #     detail_text = ""
-    #     if mamico_commit != mamico_branch_tag_commit:
-    #         detail_text = f"\n - commit: '{mamico_commit}'."
-    #     # Print a message that MaMiCo is up-to-date
-    #     rich_print(
-    #         Panel(
-    #             f"MaMiCo branch/tag/commit '{mamico_branch_tag_commit}' is up-to-date."\
-    #             f"{detail_text}",
-    #             title="[green]MaMiCo is now locally available[/green]",
-    #             border_style="green",
-    #             expand=False,
-    #         )
-    #     )
-    #     return mamico_commit
+    #         # Remove openFOAM folder if not needed
+    #         shutil.rmtree(os.path.join(self.local_mamico_path, "OpenFoam"), ignore_errors=True)
+    #         # Recreate empty folder ls1
+    #         os.makedirs(os.path.join(self.local_mamico_path, "ls1"), exist_ok=True)
+    #         return ''
 
     def check_mamico_availability(self, output: bool = True) -> bool:
         """
@@ -348,6 +342,10 @@ class MaMiCoSetup():
             delete=True,
             quiet=True
         )
+        # put(
+        #     src=self.local_mamico_path,
+        #     dst=os.path.join(env.mamico_dir, env.mamico_checksum),
+        # )
         # Print success message
         rich_print(
             Panel(
