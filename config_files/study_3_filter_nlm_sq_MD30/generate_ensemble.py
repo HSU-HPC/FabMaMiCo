@@ -1,9 +1,9 @@
+import numpy as np
 import os
 
 from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
-
 
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
@@ -23,40 +23,36 @@ domains = [
         "molecular-dynamics/domain-configuration/molecules-per-direction": "28 ; 28 ; 28",
         "molecular-dynamics/domain-configuration/domain-size": "30.0 ; 30.0 ; 30.0",
         "molecular-dynamics/domain-configuration/domain-offset": "10.0 ; 10.0 ; 2.5",
-
     }
 ]
 
+oscillations = [
+    {
+        "name": "2osc",
+        "couette-test/domain/wall-oscillations": 2
+    },
+    {
+        "name": "5osc",
+        "couette-test/domain/wall-oscillations": 5
+    }
+]
+
+wall_vel = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8]
 wall_velocities = [
     {
-        "name": "wv02",
-        "couette-test/domain/wall-velocity": "0.2 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv04",
-        "couette-test/domain/wall-velocity": "0.4 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv06",
-        "couette-test/domain/wall-velocity": "0.6 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv08",
-        "couette-test/domain/wall-velocity": "0.8 ; 0.0 ; 0.0",
-    },
-    {
-        "name": "wv10",
-        "couette-test/domain/wall-velocity": "1.0 ; 0.0 ; 0.0",
-    }
+        "name": f"wv{str(round(wv,1)).replace('.','')}",
+        "couette-test/domain/wall-velocity": f"{round(wv,1)} ; 0.0 ; 0.0",
+    } for wv in wall_vel
 ]
 
 # Generate all possible combinations of scenarios
 scenarios = []
-for dm, wv in product(domains, wall_velocities):
+for dm, osc, wv in product(domains, oscillations, wall_velocities):
     combined_dict = {
         **dm,
+        **osc,
         **wv,
-        "name": f"{dm['name']}_{wv['name']}"
+        "name": f"{dm['name']}_{osc['name']}_{wv['name']}"
     }
     scenarios.append(combined_dict)
 
@@ -69,9 +65,9 @@ nlm_configs = [
     {
         "name": "nlm",
         "template": "template_nlm.xml",
-        "filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel": 0.05,
-        "filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel": 0.1,
-        "filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size": [3, 5, 10, 20, 80]
+        "filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel": np.linspace(0.0, 1.0, 11).tolist(),
+        "filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel": np.linspace(0.0, 1.0, 11).tolist(),
+        "filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size": 5
     }
 ]
 
@@ -97,9 +93,9 @@ for sc, filt in product(scenarios, nlm_configs_all):
         **sc,
         **filt,
         "name": f"{filt['name']}_{sc['name']}_"\
-                f"sigsq{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel']:.4f}_"\
-                f"hsq{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel']:.4f}_"\
-                f"tw{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size']:02d}"
+                f"sigsqrel{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel']:.4f}_"\
+                f"hsqrel{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel']:.4f}_"\
+                f"tws{filt['filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size']:02d}"
     }
     combined_dict['name'] = combined_dict['name'].replace(".", "")
     dest_filepath = os.path.join(script_dir_path, "SWEEP", combined_dict['name'])

@@ -26,7 +26,7 @@
       wall-init-velocity="0.0 ; 0.0 ; 0.0"
       wall-init-cycles="0"
       wall-velocity="GENERATED"
-      wall-oscillations="5"
+      wall-oscillations="GENERATED"
     />
 
     <!-- Coupled simulation general setup parameters:
@@ -203,7 +203,7 @@
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
-      init-from-sequential-checkpoint="CheckpointSimpleMD30_0__10000"
+      init-from-sequential-checkpoint="CheckpointSimpleMD60_0__20000"
 
       molecules-per-direction="GENERATED"
       domain-size="GENERATED"

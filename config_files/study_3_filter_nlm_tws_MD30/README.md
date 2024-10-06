@@ -1,11 +1,11 @@
-# STUDY-3: NLM filters - MD30 - 5 oscillations - time-window-size
+# STUDY-3: NLM filters - MD30 - time-window-size
 
 
 ## Description
 
 This case study investigates the influence of NLM filters on the simulation results.
-We are using a **MD30** scenario here, with **wall-velocities 0.2, 0.4, 0.6, 0.8, and 1.0**.
-The moving wall is located at the bottom of the domain and performs **5 harmonic oscillations** during the 1,000 coupling cycles.
+We are using an **MD30** scenario, with **wall-velocities 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8**.
+The moving wall is located at the bottom of the domain and performs **either 2 or 5 harmonic oscillations** during the 1,000 coupling cycles.
 
 The MD domain is initialized with 10,000 equilibration steps.
 
@@ -13,7 +13,7 @@ The MD domain is initialized with 10,000 equilibration steps.
 ## Steps to reproduce
 
 1. Generate the input files for the case study by running the `generate_ensemble.py`-script.
-It will place 5 configurations in the `SWEEP`-directory.
+It will place 126 (2x9x7) configurations in the `SWEEP`-directory.
 The `template_nlm.xml`-file serves as a template.
 
     ```bash
@@ -23,18 +23,19 @@ The `template_nlm.xml`-file serves as a template.
 2. Submit the jobs as an ensemble to the remote machine.
 <br>
     ```bash
-    fabsim <remote-machine> mamico_run_ensemble:study_3_filter_nlm_MD30_5osc_tws
+    fabsim hsuper mamico_run_ensemble:study_3_filter_nlm_tws_MD30,cores=1,job_wall_time="01:00:00",partition_name="small_shared"
     ```
 
 3. Fetch the results from the remote machine.
 <br>
     ```bash
-    fabsim <remote-machine> fetch_results:regex="*study_3_filter_nlm_MD30_5osc_tws*"
+    fabsim hsuper fetch_results:regex="*study_3_filter_nlm_tws_MD30*"
     ```
 
 
 ## Run with
 
+HSUper
 1 core
 
 
