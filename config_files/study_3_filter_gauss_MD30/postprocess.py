@@ -14,7 +14,7 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('results_dir_multimd', type=str, help='Folder containing the results from Multi-MD simulation')
-    parser.add_argument('results_dir_gauss', type=str, help='Folder containing the results from filtering with Gauss')
+    parser.add_argument('results_dir_gauss', type=str, help='Folder containing the results from the ensemble run with Gaussian filtering')
     args = parser.parse_args()
 
     # SETUP

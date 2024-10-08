@@ -1,7 +1,6 @@
 import os
 from itertools import product
 
-import numpy as np
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
 
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -28,19 +27,19 @@ domains = [
 oscillations = [
     {
         "name": "2osc",
-        "couette-test/domain/wall-oscillations": "2"
+        "couette-test/domain/wall-oscillations": 2
     },
     {
         "name": "5osc",
-        "couette-test/domain/wall-oscillations": "5"
+        "couette-test/domain/wall-oscillations": 5
     }
 ]
 
-wall_vel = np.arange(0.2, 1.9, 0.2) # up to 1.8 (inclusive)
+wall_vel = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8]
 wall_velocities = [
     {
-        "name": f"wv{str(wv.round(1)).replace('.','')}",
-        "couette-test/domain/wall-velocity": f"{wv.round(1)} ; 0.0 ; 0.0",
+        "name": f"wv{str(round(wv,1)).replace('.','')}",
+        "couette-test/domain/wall-velocity": f"{round(wv,1)} ; 0.0 ; 0.0",
     } for wv in wall_vel
 ]
 

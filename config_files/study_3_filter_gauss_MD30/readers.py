@@ -9,6 +9,18 @@ from vtk import *
 
 
 def get_df_from_filter_csv(folder, filename):
+    """
+    Reads the (filter output) csv file in the given folder and creates an indexed dataframe.
+    Only iterations >= 100, <= 1000, and every 10th iteration are considered.
+    The dataframe is sorted by iteration and x,y,z indices.
+
+    Args:
+        folder (str): The folder containing the csv file.
+        filename (str): The name of the csv file.
+
+    Returns:
+        pd.DataFrame: The indexed dataframe.
+    """
     ########################################
     # Load the data
     df = pd.read_csv(
@@ -47,6 +59,19 @@ def get_df_from_filter_csv(folder, filename):
 
 
 def get_df_from_cfd_vtk(folder, shape, scenario=30):
+    """
+    Reads the vtk files in the given folder and creates an indexed dataframe.
+    Only iterations >= 100, <= 1000, and every 10th iteration are considered.
+    The dataframe is sorted by iteration and x,y,z indices.
+
+    Args:
+        folder (str): The folder containing the vtk files.
+        shape (Tuple[int, int]): The shape of the final numpy array.
+        scenario (int): The scenario number.
+
+    Returns:
+        pd.DataFrame: The indexed dataframe.
+    """
     ########################################
     # Create an empty numpy array
     numpy_array = np.zeros(shape)
