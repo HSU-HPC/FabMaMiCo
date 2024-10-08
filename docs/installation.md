@@ -1,13 +1,13 @@
 # Installation
 
-As FabMaMiCo is a plugin for the automation tool [FabSim3](https://www.github.com/djgroen/FabSim3), you need to install FabSim3 first.  
-Once installed, you can install FabMaMiCo as a plugin for FabSim3.
+As **FabMaMiCo** is a plugin for the automation tool [FabSim3](https://www.github.com/djgroen/FabSim3), **FabSim3** needs to be installed first.  
+Once installed, you can install **FabMaMiCo** as a plugin for **FabSim3**.
 
 ## FabSim3
 
-Please refer to the [FabSim3 documentation](https://fabsim3.readthedocs.io/en/latest/installation/) for the installation of FabSim3.
+Please refer to the [FabSim3 documentation](https://fabsim3.readthedocs.io/en/latest/installation/) for the installation of **FabSim3**.
 
-
+<!--
 ??? note
 	Not all changes to the FabSim3 repository have been merged into the official repository yet, so you might want to follow the instructions below to install the forked version of FabSim3.
 
@@ -50,6 +50,7 @@ Please refer to the [FabSim3 documentation](https://fabsim3.readthedocs.io/en/la
 		```
 
 	4. To make the fabsim command available in your system, please restart the shell by opening a new terminal or just re-load your bash profile by `source` command.
+-->
 
 ## FabMaMiCo
 
@@ -62,7 +63,7 @@ fabsim localhost install_plugin:FabMaMiCo
 That's it. FabMaMiCo is now installed and ready to use.
 
 ### Verify Installation
-To verify the successful installation, run the `test_installation`-task of FabMaMiCo:
+To verify the successful installation, run the `mamico_test_plugin`-task of FabMaMiCo:
 ```sh
-fabsim localhost fabmamico_test_installation
+fabsim localhost mamico_test_plugin
 ```

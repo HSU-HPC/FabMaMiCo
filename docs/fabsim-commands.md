@@ -35,7 +35,8 @@ fabsim localhost install_plugin:<plugin-name>
 
 ```sh
 fabsim localhost update_plugin:<plugin-name>
-# Updates the specified plugin on localhost (pulls latest version from the repository).
+# Updates the specified plugin on localhost
+# (pulls latest version from the repository).
 ```
 
 ```sh

@@ -59,7 +59,6 @@ nav:
   - Machine Configuration:
     - General: machine-configuration/general.md
     - Parameters: machine-configuration/parameters.md
-    - SSH Multiplexing: machine-configuration/multiplexing.md
     - Examples: machine-configuration/examples.md
   - Simulation Setups: setup-simulations.md
   - FabSim Commands: fabsim-commands.md

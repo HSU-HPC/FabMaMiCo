@@ -3,6 +3,10 @@
 Here, the default-configuration is given.
 If variables are in brackets `<var>`, they are placeholders and need to be replaced with the actual values.
 
+FabSim3 reads these parameters prior of executing a task.
+It provides all parameters by concept of a global variable (`env`), that can be accessed and queried during task execution.
+Users can thus access all parameters in their scripts.
+
 #### Connection
 ```yaml
 remote: "<host-url>"
@@ -223,5 +227,5 @@ partition_name: "<partition-name>"
 # No default
 ```
 
-This list is definitely not exhaustive.
+This list is by no means exhaustive.
 Please refer to parameters defined in the FabSim3 repository for more details.
