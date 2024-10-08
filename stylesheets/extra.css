@@ -1,0 +1,17 @@
+:root {
+    --md-admonition-icon--notes-more: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>dots-horizontal</title><path d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z" /></svg>')
+  }
+  .md-typeset .admonition.notes-more,
+  .md-typeset details.notes-more {
+    border-color: rgb(50, 50, 50);
+  }
+  .md-typeset .notes-more > .admonition-title,
+  .md-typeset .notes-more > summary {
+    background-color: rgba(151, 151, 151, 0.1);
+  }
+  .md-typeset .notes-more > .admonition-title::before,
+  .md-typeset .notes-more > summary::before {
+    background-color: rgb(153, 153, 153);
+    -webkit-mask-image: var(--md-admonition-icon--notes-more);
+            mask-image: var(--md-admonition-icon--notes-more);
+  }
