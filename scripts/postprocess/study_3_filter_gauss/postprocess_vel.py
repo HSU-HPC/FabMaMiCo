@@ -19,6 +19,8 @@ def plot_over_time(
         output_dir: str
     ):
 
+    os.makedirs(output_dir, exist_ok=True)
+
     for osc in oscillations:
         for wv in wall_velocities:
             RUN_F = f"gauss_MD{scenario}_{osc}osc_wv{str(wv).replace('.', '')}"

@@ -20,6 +20,8 @@ def generate_plots(
         from_npy: bool = False
     ):
 
+    os.makedirs(output_dir, exist_ok=True)
+
     # initialize results array
     res = np.zeros((2, len(wall_velocities), 4))
     # create figure

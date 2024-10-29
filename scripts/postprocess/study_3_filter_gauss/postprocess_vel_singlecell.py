@@ -19,6 +19,8 @@ def plot_over_time(
         output_dir: str
     ):
 
+    os.makedirs(output_dir, exist_ok=True)
+
     # cell index
     x,y,z = 3,3,3
 
