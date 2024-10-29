@@ -26,24 +26,25 @@ The simulation will only perform equilibration steps and generate a checkpoint f
 
 ## Steps to reproduce
 
-1. Run the `generate_ensemble.py`-script to generate the input files for the two scenarios MD30 and MD60.
-   This creates the `SWEEP`-directory with the configurations.
+1. Compile MaMiCo on the remote system
 <br>
     ```bash
-    python generate_ensemble.py
+    fabsim hsuper mamico_install:study_3_filter_CP
     ```
 
 2. Submit a job ensemble to the remote machine.
-   This will generate the checkpoint file for each scenario `CheckpointSimpleMD30_10000_0.checkpoint` and `CheckpointSimpleMD60_20000_0.checkpoint`.
+   This creates the `SWEEP` directory with two configurations, `MD30` and `MD60`.
+   The then submitted jobs will generate the checkpoint file for each scenario,
+   `CheckpointSimpleMD30_10000_0.checkpoint` and `CheckpointSimpleMD60_20000_0.checkpoint`.
 <br>
     ```bash
-    fabsim hsuper mamico_run_ensemble:study_3_filter_gauss:CP
+    fabsim hsuper mamico_run_ensemble:study_3_filter_CP,cores=1,job_wall_time="04:00:00",partition_name="small_shared"
     ```
 
-3. Fetch the results from the remote machine, amongst which is the checkpoint-file.
+3. Fetch the results from the remote machine, amongst which are the checkpoint-files.
 <br>
     ```bash
-    fabsim hsuper fetch_results regex="*study_3_filter_CP*"
+    fabsim hsuper fetch_results regex="fabmamico_study_3_filter_CP*"
     ```
 
 4. Place the checkpoint files into other configuration directories - they are already included as part of the repository.
