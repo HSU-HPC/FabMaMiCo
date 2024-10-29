@@ -3,7 +3,6 @@ import os
 import numpy as np
 import pandas as pd
 
-from matplotlib import pyplot as plt
 from typing import *
 from vtk import *
 
@@ -55,10 +54,14 @@ def get_df_from_filter_csv(folder, filename):
     # Sort by iteration and indices
     df = df.sort_values(["iteration", "idx_z", "idx_y", "idx_x"], ascending=[True, True, True, True])
 
+    df['vel_x'] = df['mom_x'] / df['mass']
+    df['vel_y'] = df['mom_y'] / df['mass']
+    df['vel_z'] = df['mom_z'] / df['mass']
+
     return df
 
 
-def get_df_from_cfd_vtk(folder, shape, scenario=30):
+def get_df_from_cfd_vtk(folder, length, scenario=30):
     """
     Reads the vtk files in the given folder and creates an indexed dataframe.
     Only iterations >= 100, <= 1000, and every 10th iteration are considered.
@@ -72,9 +75,27 @@ def get_df_from_cfd_vtk(folder, shape, scenario=30):
     Returns:
         pd.DataFrame: The indexed dataframe.
     """
+
+    ########################################
+    # Set factor to convert from vtk units
+    # to mamico units
+    factor = 10
+    # explanation:
+    # MD30: dt_md = 0.005                \
+    #       dt_lb = dt_md * n_time_steps |
+    #             = 0.005 * 50           |>  v_mamico = v_vtk * dx_lb / dt_lb = v_vtk * 10
+    #             = 0.25                 |
+    #       dx_lb = 2.5                  /
+
+    # MD60: dt_md = 0.005                \
+    #       dt_lb = dt_md * n_time_steps |
+    #             = 0.005 * 100          |>  v_mamico = v_vtk * dx_lb / dt_lb = v_vtk * 10
+    #             = 0.5                  |
+    #       dx_lb = 5.0                  /
+
     ########################################
     # Create an empty numpy array
-    numpy_array = np.zeros(shape)
+    numpy_array = np.zeros((length,8)) # it, dens, v_x, v_y, v_z, idx_x, idx_y, idx_z
 
     # Row counter for final result-array
     row = 0
@@ -136,6 +157,10 @@ def get_df_from_cfd_vtk(folder, shape, scenario=30):
     )
     df = df.astype({"iteration": np.int32, "density": float, "vel_x": float, "vel_y": float, "vel_z": float, "idx_x": np.int32, "idx_y": np.int32, "idx_z": np.int32})
     df = df.sort_values(["iteration", "idx_z", "idx_y", "idx_x"], ascending=[True, True, True, True])
+
+    df['vel_x_mamico'] = df['vel_x'] * factor
+    df['vel_y_mamico'] = df['vel_y'] * factor
+    df['vel_z_mamico'] = df['vel_z'] * factor
 
     return df
 
