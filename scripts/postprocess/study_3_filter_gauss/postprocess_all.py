@@ -17,7 +17,7 @@ def generate_plots(
         results_dir_gauss: str,
         results_dir_multimd: str,
         output_dir: str,
-        from_npy: bool = True
+        from_npy: bool = False
     ):
 
     # initialize results array
