@@ -91,7 +91,7 @@ for sc, filt in product(scenarios, pod_configs_all):
     combined_dict = {
         **sc,
         **filt,
-        "name": f"{filt['name']}_{sc['name']}_tw{filt['filter-pipeline/per-instance/my-pod/POD/time-window-size']}_kmax{filt['filter-pipeline/per-instance/my-pod/POD/kmax']}"
+        "name": f"{filt['name']}_{sc['name']}_tws{filt['filter-pipeline/per-instance/my-pod/POD/time-window-size']}_kmax{filt['filter-pipeline/per-instance/my-pod/POD/kmax']}"
     }
     dest_filepath = os.path.join(script_dir_path, "SWEEP", combined_dict['name'])
     alter_xml(script_dir_path, combined_dict, write=dest_filepath)

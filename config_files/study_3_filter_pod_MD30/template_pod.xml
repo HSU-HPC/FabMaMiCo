@@ -82,7 +82,7 @@
       type="lb"
       viscosity="2.14"
       number-of-processes="1 ; 1 ; 1"
-      plot-every-timestep="0"
+      plot-every-timestep="10"
       init-advance-cycles="0"
       foam-setup-directory="/home/helene/Dokumente/mamico-dev/coupling/tests/build_couette"
       foam-setup-folder="FoamSetup"
