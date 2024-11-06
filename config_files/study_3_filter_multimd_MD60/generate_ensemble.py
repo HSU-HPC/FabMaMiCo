@@ -29,19 +29,19 @@ domains = [
 oscillations = [
     {
         "name": "2osc",
-        "couette-test/domain/wall-oscillations": "2"
+        "couette-test/domain/wall-oscillations": 2
     },
     {
         "name": "5osc",
-        "couette-test/domain/wall-oscillations": "5"
+        "couette-test/domain/wall-oscillations": 5
     }
 ]
 
 wall_vel = np.arange(0.2, 1.9, 0.2) # up to 1.8 (inclusive)
 wall_velocities = [
     {
-        "name": f"wv{str(wv.round(1)).replace('.','')}",
-        "couette-test/domain/wall-velocity": f"{wv.round(1)} ; 0.0 ; 0.0",
+        "name": f"wv{str(round(wv,1)).replace('.','')}",
+        "couette-test/domain/wall-velocity": f"{round(wv,1)} ; 0.0 ; 0.0",
     } for wv in wall_vel
 ]
 
@@ -52,7 +52,7 @@ for dm, osc, wv in product(domains, oscillations, wall_velocities):
         **dm,
         **osc,
         **wv,
-        "name": f"{dm['name']}_{osc['name']}_{wv['name']}"
+        "name": f"multimd_{dm['name']}_{osc['name']}_{wv['name']}"
     }
     scenarios.append(combined_dict)
 
