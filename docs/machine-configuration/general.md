@@ -8,15 +8,15 @@ While some parameters are globally valid, others are specific to the user or the
 
 FabSim3 thus uses three different machine configuration files:
 
-- **machine-specific** configuration file: `FabSim3/fabsim/deploy/machines.yml`
+- **machine-specific** configuration file: `$FABSIM3_HOME/fabsim/deploy/machines.yml`
     - This file is part of the public FabSim3 repository.
     - It contains the machine-agnostic settings like the remote url, job scheduler commands, etc.
     - You should not need to change this file.
-- **user-specific** configuration file: `FabSim3/fabsim/deploy/machines_user.yml`
+- **user-specific** configuration file: `$FABSIM3_HOME/fabsim/deploy/machines_user.yml`
     - This file is not part of the FabSim3 repository, it is created during the installation of FabSim3.
     - It contains user-agnostic settings like username, account, etc.
     - You should change this file to match your personal remote machine settings once you have installed FabSim3.
-- **plugin-specific** configuration file: `FabSim3/plugins/FabMaMiCo/machines_FabMaMiCo_user.yml`
+- **plugin-specific** configuration file: `$FABSIM3_HOME/plugins/FabMaMiCo/machines_FabMaMiCo_user.yml`
     - This file is not part of the FabMaMiCo plugin, you need to create it manually by copying and renaming the exemplary file.
     - It contains plugin-specific parameters, like the remote installation path for MaMiCo, etc.
     - Adapt this file to your needs and even consider changing it for individual task executions.
@@ -50,10 +50,10 @@ If specified, they are resolved in runtime.
 
 Please follow the steps to configure your remote machine for FabSim3:
 
-1. Machine-specific configuration file: `FabSim3/fabsim/deploy/machines.yml`
+1. Machine-specific configuration file: `$FABSIM3_HOME/fabsim/deploy/machines.yml`
     - Check if the remote machine you want to use is already listed in the `machines.yml` file
 
-2. User-specific configuration file: `FabSim3/fabsim/deploy/machines_user.yml`
+2. User-specific configuration file: `$FABSIM3_HOME/fabsim/deploy/machines_user.yml`
     - Change the settings in `machines_user.yml` to match your personal remote machine settings
     - An example is given here:
     === "HSUper"
@@ -65,7 +65,7 @@ Please follow the steps to configure your remote machine for FabSim3:
             fabric_dir: "FabSim3" # The remote directory where FabSim3 is placing input and output files
         ```
 
-3. Plugin-specific configuration file: `FabSim3/plugins/FabMaMiCo/machines_FabMaMiCo_user.yml`
+3. Plugin-specific configuration file: `$FABSIM3_HOME/plugins/FabMaMiCo/machines_FabMaMiCo_user.yml`
     - Copy the exemplary file `machines_FabMaMiCo_user_example.yml` and rename it to `machines_FabMaMiCo_user.yml`
     - Change the settings in `machines_FabMaMiCo_user.yml` to match your personal plugin/simulation settings
     - An example is given here:
@@ -84,4 +84,4 @@ Please follow the steps to configure your remote machine for FabSim3:
                 postprocess: ["load python/3.11"]
         ```
 
-You can find a detailed explanation of the parameters on the [next page (Parameters)](/machine-configuration/parameters/).
+You can find a detailed explanation of the parameters on the next page (Parameters).
