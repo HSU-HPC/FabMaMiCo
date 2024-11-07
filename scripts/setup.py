@@ -58,7 +58,7 @@ class MaMiCoSetup():
                 Panel(
                     f"Please wait until branch/tag/commit '{mamico_branch_tag_commit}' "\
                     f"is available locally.",
-                    title="[pink1]Downloading MaMiCo[/pink1]",
+                    title="Downloading MaMiCo",
                     border_style="pink1",
                     expand=False,
                 )
@@ -86,7 +86,7 @@ class MaMiCoSetup():
                 Panel(
                     f"Please wait until branch/tag/commit '{mamico_branch_tag_commit}' "\
                     f"is updated and checked out.",
-                    title="[pink1]Pulling latest MaMiCo changes[/pink1]",
+                    title="Pulling latest MaMiCo changes",
                     border_style="pink1",
                     expand=False,
                 )
@@ -121,9 +121,9 @@ class MaMiCoSetup():
         # Print a message that MaMiCo is up-to-date
         rich_print(
             Panel(
-                f"MaMiCo branch/tag/commit '{mamico_branch_tag_commit}' is up-to-date."\
+                f"MaMiCo branch/tag/commit '{mamico_branch_tag_commit}' is up to date."\
                 f"{detail_text}",
-                title="[green]MaMiCo is now locally available[/green]",
+                title="MaMiCo is now locally available",
                 border_style="green",
                 expand=False,
             )
@@ -151,7 +151,17 @@ class MaMiCoSetup():
                         f"Please wait until branch/tag/commit "\
                         f"'{ls1_branch_tag_commit}' is available locally.\n"\
                         f"This may take a while.""",
-                        title="[pink1]Downloading ls1-mardyn[/pink1]",
+                        title="Downloading ls1-mardyn",
+                        border_style="pink1",
+                        expand=False,
+                    )
+                )
+            else:
+                rich_print(
+                    Panel(
+                        f"Please wait until branch/tag/commit "\
+                        f"'{ls1_branch_tag_commit}' is updated and checked out.",
+                        title="Pulling latest ls1-mardyn changes",
                         border_style="pink1",
                         expand=False,
                     )
@@ -177,8 +187,8 @@ class MaMiCoSetup():
                 )
             rich_print(
                 Panel(
-                    f"ls1-mardyn branch/tag/commit '{ls1_branch_tag_commit}' is up-to-date.",
-                    title="[green]ls1-mardyn is now locally available[/green]",
+                    f"ls1-mardyn branch/tag/commit '{ls1_branch_tag_commit}' is up to date.",
+                    title="ls1-mardyn is now locally available",
                     border_style="green",
                     expand=False,
                 )
@@ -191,79 +201,26 @@ class MaMiCoSetup():
             os.makedirs(os.path.join(self.local_mamico_path, "ls1"), exist_ok=True)
             return ''
 
-    def prepare_openfoam_locally(self, need_openfoam: bool = False) -> str:
-        """
-        Download OpenFOAM if not already available locally.
-
-        Returns:
-            None
-        """
-
-        if need_openfoam:
-            # Check whether OpenFOAM folder is already available locally
-            if not os.path.isdir(self.local_openfoam_path) \
-                or len(os.listdir(self.local_openfoam_path)) < 2:
-                # Download the tar archive
-                rich_print(
-                    Panel(
-                        f"Please wait until the OpenFoam archive is available locally.",
-                        title="[pink1]Downloading OpenFoam[/pink1]",
-                        border_style="pink1",
-                        expand=False,
-                    )
-                )
-                # Download OpenFoam archive
-                # local(
-                #     f"mkdir -p {self.local_openfoam_path}",
-                #     capture=True
-                # )
-                # local(
-                #     f"curl -L https://dl.openfoam.com/source/v2206/OpenFOAM-v2206.tgz > {self.local_openfoam_path}/OpenFoam.tgz",
-                # )
-                local(
-                    f"cd {self.local_openfoam_path} && tar -xvzf OpenFoam.tgz",
-                    capture=True
-                )
-            # Determine the latest commit hash
-            openfoam_version = "v2206"
-            # Print a message that MaMiCo is up-to-date
-            rich_print(
-                Panel(
-                    f"OpenFOAM '{openfoam_version}' is up-to-date.",
-                    title="[green]MaMiCo is now locally available[/green]",
-                    border_style="green",
-                    expand=False,
-                )
-            )
-            return openfoam_version
-        else:
-            # Remove openFOAM folder if not needed
-            shutil.rmtree(os.path.join(self.local_openfoam_path), ignore_errors=True)
-            return ''
-
     def check_mamico_availability(self, output: bool = True) -> bool:
         """
-        Check whether MaMiCo is already available on the remote machine.
+        Check whether MaMiCo executable 'couette' is already available on the remote machine.
 
         Returns:
-            bool: True if MaMiCo is already available, False otherwise
+            bool: True if MaMiCo's 'couette' is already available, False otherwise
         """
-        # TODO: Check if compilation_info.yml is available!
         try:
             run(
-                f'test -d {env.mamico_dir}/{env.mamico_checksum}/build',
-                capture=True
-            )
-            run(
-                f'[ -e {env.mamico_dir}/{env.mamico_checksum}/build/couette ]',
+                f'test -d {env.mamico_dir}/{env.mamico_checksum}/build '\
+                f'&& test -e {env.mamico_dir}/{env.mamico_checksum}/build/couette '\
+                f'&& test -e {env.mamico_dir}/{env.mamico_checksum}/build/compilation_info.yml',
                 capture=True
             )
             if output:
                 rich_print(
                     Panel(
-                        f"The MaMiCo source code and executable are already available here:\n" \
-                        f"{env.mamico_dir}/{env.mamico_checksum}",
-                        title=f"[green]MaMiCo is available on {env.host}[/green]",
+                        f"MaMiCo has already been compiled - the executable [bold]couette[/bold] is located here:\n" \
+                        f"{env.mamico_dir}/{env.mamico_checksum}/build",
+                        title=f"MaMiCo is available on {env.host}",
                         border_style="green",
                         expand=False,
                     )
@@ -282,10 +239,9 @@ class MaMiCoSetup():
             Panel(
                 f"Please wait until the source code of MaMiCo"\
                 f"{', ls1-mardyn' if need_ls1 else ''}"\
-                f"{', OpenFOAM' if need_openfoam else ''}"\
                 f" is copied to {env.host}.",
-                title=f"[pink1]Transferring Source Code"\
-                    f"{ ' & ls1-mardyn' if need_ls1 else '' }[/pink1]",
+                title=f"Transferring Source Code"\
+                    f"{ ' & ls1-mardyn' if need_ls1 else '' }",
                 border_style="pink1",
                 expand=False
             )
@@ -321,7 +277,7 @@ class MaMiCoSetup():
                 f"{', ls1-mardyn' if need_ls1 else ''}"\
                 f"{', OpenFOAM' if need_openfoam else ''}"\
                 f" was successfully copied to {os.path.join(env.mamico_dir, env.mamico_checksum)}.",
-                title=f"[green]Transfer to {env.host} succeeded[/green]",
+                title=f"Transfer to {env.host} succeeded",
                 border_style="green",
                 expand=False
             )
@@ -391,7 +347,7 @@ class MaMiCoSetup():
         """
         local(
             f"scp -q -o LogLevel=QUIET {os.path.join(self.plugin_path, 'tmp/checksum_files', f'{env.mamico_checksum}.yml')} "\
-            f"{env.host}:{os.path.join(env.mamico_dir, env.mamico_checksum, 'compilation_info.yml')}"
+            f"{env.username}@{env.remote}:{os.path.join(env.mamico_dir, env.mamico_checksum, 'compilation_info.yml')}"
         )
 
     def _get_latest_commit(self, directory: str = None) -> str:

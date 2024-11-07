@@ -12,7 +12,7 @@ except ImportError:
 
 class Settings():
     """
-    MaMiCo settings class to store and manage the user settingss.
+    MaMiCo settings class to store and manage the user settings.
     """
     def __init__(self, plugin_filepath: str, config: str):
         """
@@ -51,7 +51,7 @@ class Settings():
             The value for the given key or the default value if the key does not exist.
         """
         return self.settings.get(key, default)
-    
+
     def delete(self, key: str):
         """
         Delete the key from the settings.
@@ -61,7 +61,7 @@ class Settings():
         """
         if key in self.settings:
             del self.settings[key]
-    
+
     def determine_md5(self):
         """
         Determine the MD5 checksum of the settings.
@@ -78,9 +78,22 @@ class Settings():
         rich_print(
             Panel(
                 f"{checksum}",
-                title=f"[green]MD5 Checksum:[/green]",
+                title=f"MD5 Checksum:",
                 border_style="green",
                 expand=False,
             )
         )
         return checksum
+
+    def print(self):
+        """
+        Print the settings.
+        """
+        rich_print(
+            Panel(
+                yaml.dump(self.settings, sort_keys=True, indent=2, line_break='\n'),
+                title=f"Settings:",
+                border_style="blue",
+                expand=False,
+            )
+        )
