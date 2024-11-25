@@ -28,9 +28,9 @@ FabMaMiCo_path = get_plugin_path("FabMaMiCo")
 ##################################################################################################
 
 @task
-def mamico_test_plugin(**args):
+def mamico_test_plugin(**args) -> None:
     """
-    Test the FabMaMiCo plugin installation.
+    Tests the FabMaMiCo plugin installation.
     If this task is callable via `fabsim <machine> mamico_test_plugin`,
     the plugin is installed correctly.
     """
@@ -59,10 +59,11 @@ def mamico_test_plugin(**args):
 ##################################################################################################
 
 @task
-def mamico_ml_overview():
+def mamico_lmod_overview(**args) -> None:
     """
-    Retrieve an overview of available modules.
+    Prints an overview of available modules.
     """
+    update_environment(args)
     cmd = "module --redirect overview 2>&1"
     output = run(cmd, capture=True)
     rich_print(
@@ -77,10 +78,12 @@ def mamico_ml_overview():
 
 
 @task
-def mamico_ml_available(query: str = ""):
+def mamico_lmod_available(query: str = "", **args) -> None:
     """
-    List available modules with an optional query.
+    Prints a list of available modules.
+    Optionally, a query can be provided to filter the list.
     """
+    update_environment(args)
     cmd = f"module --redirect available {query} 2>&1"
     output = run(cmd, capture=True)
     box_text = f"The following modules are available on {env.host}:"
@@ -97,15 +100,16 @@ def mamico_ml_available(query: str = ""):
 
 
 @task
-def mamico_ml_keyword(keyword: str = None):
+def mamico_lmod_keyword(keyword: str = None, **args) -> None:
     """
-    Search modules by a keyword.
+    Searches modules by a keyword, given as an argument.
     """
+    update_environment(args)
     if keyword is None:
         rich_print(
             Panel(
                 f"Please provide a keyword to search for:\n"\
-                 "  $ fabsim <machine> mamico_ml_keyword:<keyword>",
+                 "  $ fabsim <machine> mamico_lmod_keyword:<keyword>",
                 title="No keyword provided",
                 border_style="red",
                 expand=False,
@@ -125,27 +129,25 @@ def mamico_ml_keyword(keyword: str = None):
     print(output)
 
 
+###### WIP ######
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_ml_test_WIP(template_script: str, **args):
+def mamico_lmod_test_WIP(template_script: str, **args):
     """
     Check if the modules from machines.yml/machines_user.yml are available.
     """
     update_environment()
     print(env.modules[template_script])
+#################
 
 
 ##################################################################################################
-################################### MaMiCo simulations ###########################################
+############################ MaMiCo installation housekeeping ####################################
 ##################################################################################################
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_install(
-    config: str,
-    only_check: Optional[bool] = False,
-    **args
-) -> bool:
+def mamico_install(config: str, only_check: Optional[bool] = False, **args) -> bool:
     """
     Transfers the MaMiCo source code to the remote machine and compiles it with all its dependencies.
     Downloads the MaMiCo source code from the MaMiCo repository and optionally ls1-mardyn and OpenFOAM.
@@ -153,6 +155,7 @@ def mamico_install(
     Then compiles the code on the remote machine, either on the login node or on a compute node.
     """
     update_environment(args)
+    with_config(config)
     # read the settings from the config_dir/settings.yml
     settings = Settings(FabMaMiCo_path, config)
     # create instance of MaMiCoSetup (includes setup functionalities)
@@ -243,170 +246,6 @@ def mamico_install(
 
     return True
 
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_run(config: str, **args):
-    """
-    Run a single MaMiCo simulation.
-    This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
-    It then copies the necessary input files to the build folder and submits the job.
-    """
-    update_environment(args)
-    with_config(config)
-    execute(put_configs, config)
-
-    env.mamico_dir = template(env.mamico_dir_template)
-
-    # make sure MaMiCo is installed
-    mamico_install(config, **args)
-
-    # submit the job
-    job(dict(script='run'), args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_run_ensemble(config: str, **args):
-    """
-    Run an ensemble of MaMiCo simulations.
-    This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
-    It then copies the necessary input files to the build folder and submits the job ensemble.
-    """
-    update_environment(args)
-
-    generate_sweep()
-
-    # make sure MaMiCo is installed
-    mamico_install(config, **args)
-
-    env.mamico_dir = template(env.mamico_dir_template)
-
-    path_to_config = find_config_file_path(config)
-    print(f"local config file path at: {path_to_config}")
-    sweep_dir = os.path.join(path_to_config, "SWEEP")
-    env.script = 'run' if args.get("script", None) is None else args.get("script")
-    with_config(config)
-    run_ensemble(config, sweep_dir, **args)
-
-
-##################################################################################################
-################################## MaMiCo postprocessing #########################################
-##################################################################################################
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_install_venv(**args):
-    """
-    Create a virtual environment for Python and install the required packages.
-    """
-    # TODO: Add miniconda installation (?)
-    # create the config_files directory and copy the requirements_remote.txt file there
-    env['mamico_venv'] = template(env.mamico_venv_template)
-    config = "venv_setup"
-    local(f"mkdir -p {env.localplugins['FabMaMiCo']}/config_files/{config}")
-    local(f"cp {env.localplugins['FabMaMiCo']}/requirements_remote.txt {env.localplugins['FabMaMiCo']}/config_files/{config}/requirements.txt")
-    local(f"echo '*' > {env.localplugins['FabMaMiCo']}/config_files/{config}/.gitignore")
-    update_environment(args)
-    with_config(config)
-    # transfer files from config_files to remote machine
-    execute(put_configs, config)
-    # set the commands for the virtual environment setup
-    env['venv_setup_commands'] = "\n".join([
-        f"python3 -m venv {env.mamico_venv}",
-        f"source {env.mamico_venv}/bin/activate",
-        f"pip install -r {env.job_config_path}/requirements.txt",
-        # f"rm -rf {env.job_config_path}/"
-    ])
-    # submit the job
-    # TODO: is it a requirement to install via job and not via bash?
-    env['job_dispatch'] = "bash -l -c"
-    job(dict(script='venv_setup'), args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_postprocess(config: str, script: str = "postprocess.py", py_args: str = "", **args):
-    """
-    Run a postprocessing Pyhon script in the given config-directory.
-    """
-    update_environment(args)
-
-    if not os.path.exists(os.path.join(env.localplugins['FabMaMiCo'], "config_files", config, script)):
-        rich_print(
-            Panel(
-                f"The postprocessing script '{script}' does not exist in the config directory '{config}'.",
-                title="[red]Script not found[/red]",
-                border_style="red",
-                expand=False,
-            )
-        )
-        return
-
-    env.postprocess_args = py_args
-
-    with_config(config)
-    # execute(put_configs, config)
-    # please only transfer the postprocess script
-    put(os.path.join(env.localplugins['FabMaMiCo'], "config_files", config, script), env.job_config_path)
-
-    # submit the job
-    job_args = {
-        'script': 'postprocess',
-        'postprocess_script': script,
-        'postprocess_args': py_args
-    }
-    job(job_args, args)
-
-
-##################################################################################################
-################################### MaMiCo monitoring ############################################
-##################################################################################################
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_stat(**args):
-    """
-    Show the queue of FabMaMiCo-jobs on the remote machine.
-    Calls `squeue` and filters the output for FabMaMiCo-jobs.
-    """
-    update_environment(args)
-    output = run(f"squeue --format='%.10i %.9P %.70j %.10u %.8T %.13M %.9l %.6D %R' --me", capture=True)
-    output = output.split("\n")
-    output = output[0] + "\n" + "\n".join([line for line in output[1:] if "fabmamico_" in line])
-    print(output)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_jobs_overview(**args):
-    """
-    Show the queue of FabMaMiCo-jobs on the remote machine.
-    Calls `squeue` and filters the output for FabMaMiCo-jobs.
-    """
-    update_environment(args)
-    output = run(f"squeue --me --noheader --format='%.10i %.70j'", capture=True)
-    output = len([l for l in output.split("\n") if "fabmamico_" in l])
-    print(f"The user {env.username} currently has {output} FabMaMiCo jobs in the queue.")
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_jobs_cancel_all(**args):
-    """
-    Cancel all `fabmamico_`-jobs on the remote machine.
-    """
-    update_environment(args)
-    output = run(
-        "squeue --me --format='%.10i %.80j' | grep fabmamico_ | awk '{print $1}' | tail -n+2 | xargs -n 1 scancel",
-        capture=True
-    )
-    print(output)
-    print("All MaMiCo jobs have been canceled.")
-
-
-##################################################################################################
-############################ MaMiCo installation housekeeping ####################################
-##################################################################################################
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
@@ -597,9 +436,174 @@ def mamico_remove_all_installations(**args):
 
 
 ##################################################################################################
-############################## WIP: Case Study specific tasks ####################################
+################################### MaMiCo simulations ###########################################
 ##################################################################################################
 
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_run(config: str, **args):
+    """
+    Run a single MaMiCo simulation.
+    This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
+    It then copies the necessary input files to the build folder and submits the job.
+    """
+    update_environment(args)
+    with_config(config)
+    execute(put_configs, config)
+
+    env.mamico_dir = template(env.mamico_dir_template)
+
+    # make sure MaMiCo is installed
+    mamico_install(config, **args)
+
+    # submit the job
+    job(dict(script='run'), args)
+
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_run_ensemble(config: str, **args):
+    """
+    Run an ensemble of MaMiCo simulations.
+    This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
+    It then copies the necessary input files to the build folder and submits the job ensemble.
+    """
+    update_environment(args)
+
+    generate_sweep()
+
+    # make sure MaMiCo is installed
+    mamico_install(config, **args)
+
+    env.mamico_dir = template(env.mamico_dir_template)
+
+    path_to_config = find_config_file_path(config)
+    print(f"local config file path at: {path_to_config}")
+    sweep_dir = os.path.join(path_to_config, "SWEEP")
+    env.script = 'run' if args.get("script", None) is None else args.get("script")
+    with_config(config)
+    run_ensemble(config, sweep_dir, **args)
+
+
+##################################################################################################
+################################## MaMiCo postprocessing #########################################
+##################################################################################################
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_install_venv(**args):
+    """
+    Create a virtual environment for Python and install the required packages.
+    """
+    # TODO: Add miniconda installation (?)
+    # create the config_files directory and copy the requirements_remote.txt file there
+    env['mamico_venv'] = template(env.mamico_venv_template)
+    config = "venv_setup"
+    local(f"mkdir -p {env.localplugins['FabMaMiCo']}/config_files/{config}")
+    local(f"cp {env.localplugins['FabMaMiCo']}/requirements_remote.txt {env.localplugins['FabMaMiCo']}/config_files/{config}/requirements.txt")
+    local(f"echo '*' > {env.localplugins['FabMaMiCo']}/config_files/{config}/.gitignore")
+    update_environment(args)
+    with_config(config)
+    # transfer files from config_files to remote machine
+    execute(put_configs, config)
+    # set the commands for the virtual environment setup
+    env['venv_setup_commands'] = "\n".join([
+        f"python3 -m venv {env.mamico_venv}",
+        f"source {env.mamico_venv}/bin/activate",
+        f"pip install -r {env.job_config_path}/requirements.txt",
+        # f"rm -rf {env.job_config_path}/"
+    ])
+    # submit the job
+    # TODO: is it a requirement to install via job and not via bash?
+    env['job_dispatch'] = "bash -l -c"
+    job(dict(script='venv_setup'), args)
+
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_postprocess(config: str, script: str = "postprocess.py", py_args: str = "", **args):
+    """
+    Run a postprocessing Pyhon script in the given config-directory.
+    """
+    update_environment(args)
+
+    if not os.path.exists(os.path.join(env.localplugins['FabMaMiCo'], "config_files", config, script)):
+        rich_print(
+            Panel(
+                f"The postprocessing script '{script}' does not exist in the config directory '{config}'.",
+                title="[red]Script not found[/red]",
+                border_style="red",
+                expand=False,
+            )
+        )
+        return
+
+    env.postprocess_args = py_args
+
+    with_config(config)
+    # execute(put_configs, config)
+    # please only transfer the postprocess script
+    put(os.path.join(env.localplugins['FabMaMiCo'], "config_files", config, script), env.job_config_path)
+
+    # submit the job
+    job_args = {
+        'script': 'postprocess',
+        'postprocess_script': script,
+        'postprocess_args': py_args
+    }
+    job(job_args, args)
+
+
+##################################################################################################
+################################### MaMiCo monitoring ############################################
+##################################################################################################
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_stat(**args):
+    """
+    Show the queue of FabMaMiCo-jobs on the remote machine.
+    Calls `squeue` and filters the output for FabMaMiCo-jobs.
+    """
+    update_environment(args)
+    output = run(f"squeue --format='%.10i %.9P %.70j %.10u %.8T %.13M %.9l %.6D %R' --me", capture=True)
+    output = output.split("\n")
+    output = output[0] + "\n" + "\n".join([line for line in output[1:] if "fabmamico_" in line])
+    print(output)
+
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_jobs_overview(**args):
+    """
+    Show the queue of FabMaMiCo-jobs on the remote machine.
+    Calls `squeue` and filters the output for FabMaMiCo-jobs.
+    """
+    update_environment(args)
+    output = run(f"squeue --me --noheader --format='%.10i %.70j'", capture=True)
+    output = len([l for l in output.split("\n") if "fabmamico_" in l])
+    print(f"The user {env.username} currently has {output} FabMaMiCo jobs in the queue.")
+
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_jobs_cancel_all(**args):
+    """
+    Cancel all `fabmamico_`-jobs on the remote machine.
+    """
+    update_environment(args)
+    output = run(
+        "squeue --me --format='%.10i %.80j' | grep fabmamico_ | awk '{print $1}' | tail -n+2 | xargs -n 1 scancel",
+        capture=True
+    )
+    print(output)
+    print("All MaMiCo jobs have been canceled.")
+
+
+
+##################################################################################################
+############################## WIP: Case Study specific tasks ####################################
+##################################################################################################
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
@@ -851,7 +855,6 @@ def mamico_postprocess_study_3_filter_nlm_sq(**args):
     )
 
     # TODO: Add MD60
-
 
 
 
@@ -1121,6 +1124,84 @@ def mamico_study_3_filter_pod_plot_selected(**args):
             output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper", "plots")
         )
 
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_study_3_filter_nlm_tws(**args):
+
+    scenarios = [
+        # {"domain": 30, "job_wall_time": "01:00:00" },
+        {"domain": 60, "job_wall_time": "12:00:00" },
+    ]
+
+    for scenario in scenarios:
+        config = f"study_3_filter_nlm_tws_MD{scenario['domain']}"
+
+        # 1. Make sure there is an existing installation of MaMiCo
+        if not mamico_install(config, only_check=True):
+            print("Please install MaMiCo first.")
+            return
+
+        # 2. Update the environment
+        update_environment(args)
+        update_environment({
+            "mamico_dir": template(env.mamico_dir_template)
+        })
+        # Please be aware that this configuration is specific to HSUper!
+        update_environment({
+            "cores": 1,
+            "corespernode": 1,
+            "job_wall_time": scenario["job_wall_time"],
+            "partition_name": "small_shared",
+            "qos_name": "many-jobs-small_shared"
+        })
+
+        # 3. Generate the sweep directory
+        generate_sweep(config)
+
+        # 4. Transfer the configuration files to the remote machine
+        with_config(config)
+        execute(put_configs, config)
+
+        # 5. Update the environment for the postprocessing
+        update_environment({
+            "mamico_venv": template(env.mamico_venv_template),
+            "reduce_command": "python3",
+            "reduce_script": "reduce.py",
+            "reduce_args": f"--scenario={scenario['domain']}",
+        })
+
+        # 6. Run the ensemble
+        path_to_config = find_config_file_path(config)
+        sweep_dir = os.path.join(path_to_config, "SWEEP")
+        env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
+        run_ensemble(config, sweep_dir, **args)
+
+
+@task
+@load_plugin_env_vars("FabMaMiCo")
+def mamico_study_3_filter_nlm_tws_plot(**args):
+    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_tws.plot import create_plot
+
+    if (env.host != "localhost"):
+        print("Please run this task on localhost.")
+        return
+
+    scenarios = [30]
+
+    for scenario in scenarios:
+        create_plot(
+            scenario=scenario,
+            oscillations=[2, 5],
+            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
+            hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            tws=5,
+            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper"),
+            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper", "plots")
+        )
+
+
 @task
 @load_plugin_env_vars("FabMaMiCo")
 def mamico_study_3_filter_nlm_sq(**args):
@@ -1172,6 +1253,7 @@ def mamico_study_3_filter_nlm_sq(**args):
         sweep_dir = os.path.join(path_to_config, "SWEEP")
         env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
         run_ensemble(config, sweep_dir, **args)
+
 
 @task
 @load_plugin_env_vars("FabMaMiCo")

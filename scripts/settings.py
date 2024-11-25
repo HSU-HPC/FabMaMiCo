@@ -23,7 +23,7 @@ class Settings():
         """
         self.plugin_path: str = plugin_filepath
         self.config: str = config
-        settings_filepath = os.path.join(plugin_filepath, 'config_files', config, 'settings.yml')
+        settings_filepath = os.path.join(env.job_config_path_local, 'settings.yml')
         if not os.path.isfile(settings_filepath):
             raise FileNotFoundError(f"Settings file '{settings_filepath}' not found.")
         with open(settings_filepath, 'r') as settings_file:
