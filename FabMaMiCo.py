@@ -17,10 +17,35 @@ from fabsim.deploy.templates import template
 from plugins.FabMaMiCo.scripts.settings import Settings
 from plugins.FabMaMiCo.scripts.setup import MaMiCoSetup
 
+# from plugins.FabMaMiCo.scripts.spack_manager import SpackManager
+
 # Add local script, blackbox and template path.
 add_local_paths("FabMaMiCo")
 
-FabMaMiCo_path = get_plugin_path("FabMaMiCo")
+FABMAMICO_PATH = get_plugin_path("FabMaMiCo")
+
+# ToDo: Implement mechanism to let nested pairs of arguments overwrite each other
+def load_args_from_config(config: str, overwrite_nested: bool = True) -> None:
+    '''
+    Load workflows specific arguments from the config directory's args.yml file, if it exists.
+    '''
+
+    path_to_config = find_config_file_path(config)
+    path_to_config_args_file = os.path.join(path_to_config, "args.yml")
+    if (os.path.exists(path_to_config_args_file)):
+        args = yaml.safe_load(
+            open(path_to_config_args_file)
+        )
+        update_environment(args)
+        rich_print(
+            Panel(
+                f"Loaded arguments from {path_to_config_args_file}",
+                title="Configuration specific arguments loaded",
+                border_style="green",
+                expand=False,
+            )
+        )
+
 
 
 ##################################################################################################
@@ -59,7 +84,7 @@ def mamico_test_plugin(**args) -> None:
 ##################################################################################################
 
 @task
-def mamico_lmod_overview(**args) -> None:
+def mamico_mod_overview(**args) -> None:
     """
     Prints an overview of available modules.
     """
@@ -78,7 +103,7 @@ def mamico_lmod_overview(**args) -> None:
 
 
 @task
-def mamico_lmod_available(query: str = "", **args) -> None:
+def mamico_mod_available(query: str = "", **args) -> None:
     """
     Prints a list of available modules.
     Optionally, a query can be provided to filter the list.
@@ -100,7 +125,7 @@ def mamico_lmod_available(query: str = "", **args) -> None:
 
 
 @task
-def mamico_lmod_keyword(keyword: str = None, **args) -> None:
+def mamico_mod_keyword(keyword: str = None, **args) -> None:
     """
     Searches modules by a keyword, given as an argument.
     """
@@ -130,15 +155,65 @@ def mamico_lmod_keyword(keyword: str = None, **args) -> None:
 
 
 ###### WIP ######
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_lmod_test_WIP(template_script: str, **args):
-    """
-    Check if the modules from machines.yml/machines_user.yml are available.
-    """
-    update_environment()
-    print(env.modules[template_script])
+# @task
+# @load_plugin_env_vars("FabMaMiCo")
+# def mamico_mod_test_WIP(template_script: str, **args):
+#    """
+#     Check if the modules from machines.yml/machines_user.yml are available.
+#     """
+#     update_environment()
+#     print(env.modules[template_script])
 #################
+
+
+
+##################################################################################################
+####################################### Spack tasks ##############################################
+##################################################################################################
+# @task
+# @load_plugin_env_vars("FabMaMiCo")
+# def mamico_spack_install(**args) -> None:
+#     """
+#     Install Spack on the remote machine.
+#     """
+
+#     update_environment(args)
+
+#     update_environment({
+#         "spack_dir": template(env.spack_dir),
+#     })
+
+#     spack_manager = SpackManager()
+#     spack_manager.prepare_locally()
+#     spack_manager.transfer_to_remote_host()
+
+#     # Clone MaMiCo from GitHub
+#     # local(
+#     #     f"git clone https://github.com/HSU-HPC/MaMiCo.git {self.local_mamico_path}",
+#     #     capture=True
+#     # )
+
+#     # download the Spack repository locally
+#     # local(f"git clone --depth=2 --branch=releases/v0.23 https://github.com/spack/spack.git ~/spack")
+
+#     # run(f"mkdir -p {spack_dir}")
+#     # run(f"git clone --depth=2")
+
+
+# @task
+# @load_plugin_env_vars("FabMaMiCo")
+# def mamico_spack_create_env(config, **args) -> None:
+#     """
+#     Create a Spack environment.
+#     """
+#     update_environment(args)
+#     # spack_dir = template(env.spack_dir)
+#     # run(f"mkdir -p {spack_dir}")
+#     # run(f"git clone --depth=2
+
+#     env.job_dispatch = "bash -l"
+
+#     run("spack env create myenv spack.yaml")
 
 
 ##################################################################################################
@@ -154,12 +229,16 @@ def mamico_install(config: str, only_check: Optional[bool] = False, **args) -> b
     Checks out the given branch/commit/tag and transfers the source code to the remote machine.
     Then compiles the code on the remote machine, either on the login node or on a compute node.
     """
+    # ts = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    # env.job_name_template = f"{env.job_name_template}_{ts}"
+    # load_args_from_config(config)
     update_environment(args)
     with_config(config)
+    # change job name
     # read the settings from the config_dir/settings.yml
-    settings = Settings(FabMaMiCo_path, config)
+    settings = Settings(FABMAMICO_PATH, config)
     # create instance of MaMiCoSetup (includes setup functionalities)
-    mamico_setup = MaMiCoSetup(FabMaMiCo_path, config, settings)
+    mamico_setup = MaMiCoSetup(FABMAMICO_PATH, config, settings)
 
     # prepare MaMiCo locally
     mamico_commit = mamico_setup.prepare_mamico_locally()
@@ -179,7 +258,7 @@ def mamico_install(config: str, only_check: Optional[bool] = False, **args) -> b
     checksum = settings.determine_md5()
     update_environment({ "mamico_checksum": checksum })
 
-    env.mamico_dir = template(env.mamico_dir_template)
+    env.mamico_dir = template(env.mamico_dir)
 
     # if MaMiCo is already installed, skip the installation
     is_available = mamico_setup.check_mamico_availability(output=True)
@@ -192,7 +271,7 @@ def mamico_install(config: str, only_check: Optional[bool] = False, **args) -> b
     update_environment({ "cores": 1 })
 
     # transfer files from config_files to remote machine
-    execute(put_configs, config)
+    execute(put_configs, config) # also calls with_config()
 
     # prepare installation directory for MaMiCo
     run(f"mkdir -p {template(env.mamico_dir)}")
@@ -213,7 +292,6 @@ def mamico_install(config: str, only_check: Optional[bool] = False, **args) -> b
         "compilation_command_ls1": compile_command_ls1,
         "compilation_command_mamico": compile_command_mamico,
     })
-    with_config(config)
 
     # run/submit compilation job
     if env.get("compile_on_login_node", False):
@@ -266,14 +344,41 @@ def mamico_list_installations(**args):
         )
     )
     # list all directories in the MaMiCo directory
-    installations = run(f"ls {template(env.mamico_dir)}", capture=True)
+    if env.manual_ssh:
+        installations = run(f"ls {template(env.mamico_dir)}", capture=True)
+    else:
+        installations = run(f"ls {template(env.mamico_dir)}", capture=True)
+    
+    # if manual_ssh is set, the return is a tuple of (stdout, stderr)
+    if env.manual_ssh:
+        installations = installations[0]
 
     # get compilation info from each installation
     if args.get("verbose", False):
         verbose_info = []
-        for installation in installations.split():
-            a = run(f"cat {template(env.mamico_dir)}/{installation}/build/compilation_info.yml", capture=True)
-            verbose_info.append(a)
+
+        if env.manual_ssh:
+            for installation in installations.split():
+                a = run(f"cat {template(env.mamico_dir)}/{installation}/build/compilation_info.yml || true", capture=True)
+                v = a
+                if env.manual_ssh:
+                    if len(a[1]) > 0:
+                        v = "[red]Compilation seems to have failed.\n" \
+                            "No file 'compilation_info.yml' found.[/red]"
+                    else:
+                        v = a[0]
+                verbose_info.append(v)
+        else:
+            for installation in installations.split():
+                try:
+                    a = run(f"cat {template(env.mamico_dir)}/{installation}/build/compilation_info.yml", capture=True)
+                except Exception as e:
+                    a = "[red]Compilation seems to have failed.\n" \
+                        "No file 'compilation_info.yml' found.[/red]"
+                # remove trailing newline characters
+                while a.endswith(('\n', '\r\n')):
+                    a = a[:-1]
+                verbose_info.append(a)
 
     # Print the installations as table
     num_installations = len(installations.split())
@@ -291,7 +396,7 @@ def mamico_list_installations(**args):
         table.add_column("Compilation Settings", style="white")
     for installation in installations.split():
         if args.get("verbose", False):
-            table.add_row(installation, "\n".join(verbose_info.pop(0).split("\n")[:-1]))
+            table.add_row(installation, verbose_info.pop(0))
         else:
             table.add_row(installation)
     console = Console()
@@ -306,7 +411,7 @@ def mamico_installation_available(checksum: str, **args):
     installation_dir = os.path.join(template(env.mamico_dir), env.mamico_checksum)
     try:
         run(
-            f"test -d {installation_dir}",
+            f"test -d {installation_dir} && test -f {installation_dir}/build/compilation_info.yml",
             capture=True
         )
         rich_print(
@@ -317,7 +422,7 @@ def mamico_installation_available(checksum: str, **args):
                 expand=False,
             )
         )
-    except Exception as e:
+    except Exception:
         rich_print(
             Panel(
                 f"The MaMiCo installation {env.mamico_checksum} is not available on {env.host}.",
@@ -447,11 +552,12 @@ def mamico_run(config: str, **args):
     This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
     It then copies the necessary input files to the build folder and submits the job.
     """
+    load_args_from_config(config)
     update_environment(args)
     with_config(config)
     execute(put_configs, config)
 
-    env.mamico_dir = template(env.mamico_dir_template)
+    env.mamico_dir = template(env.mamico_dir)
 
     # make sure MaMiCo is installed
     mamico_install(config, **args)
@@ -468,6 +574,7 @@ def mamico_run_ensemble(config: str, **args):
     This task makes sure that the MaMiCo code is installed and compiled on the remote machine.
     It then copies the necessary input files to the build folder and submits the job ensemble.
     """
+    load_args_from_config(config)
     update_environment(args)
 
     generate_sweep()
@@ -475,7 +582,7 @@ def mamico_run_ensemble(config: str, **args):
     # make sure MaMiCo is installed
     mamico_install(config, **args)
 
-    env.mamico_dir = template(env.mamico_dir_template)
+    env.mamico_dir = template(env.mamico_dir)
 
     path_to_config = find_config_file_path(config)
     print(f"local config file path at: {path_to_config}")
@@ -593,272 +700,11 @@ def mamico_jobs_cancel_all(**args):
     """
     update_environment(args)
     output = run(
-        "squeue --me --format='%.10i %.80j' | grep fabmamico_ | awk '{print $1}' | tail -n+2 | xargs -n 1 scancel",
+        "squeue --me --format='%.10i %.80j' --noheader | grep fabmamico_ | awk '{print $1}' | tail -n+2 | xargs -n 1 scancel",
         capture=True
     )
     print(output)
     print("All MaMiCo jobs have been canceled.")
-
-
-
-##################################################################################################
-############################## WIP: Case Study specific tasks ####################################
-##################################################################################################
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_sq(**args):
-    """
-    Parameters are set for execution on HSUper.
-    """
-    if env.host != "hsuper":
-        print("Please run this task on HSUper or adapt the task to your needs.")
-        return
-
-    ## MD30
-    config = "study_3_filter_nlm_sq_MD30"
-    update_environment(args)
-    args.update({
-        "cores": 1 ,
-        "job_wall_time": "00:05:00",
-        "partition_name": "small_shared"
-    })
-    mamico_run_ensemble(config, **args)
-
-    ## MD60
-    config = "study_3_filter_nlm_sq_MD60"
-    update_environment(args)
-    args.update({
-        "cores": 1 ,
-        "job_wall_time": "00:10:00",
-        "partition_name": "small_shared"
-    })
-    mamico_run_ensemble(config, **args)
-
-    # transfer the postprocess script to the remote machine
-
-    # generate the batch script to run the postprocess script
-
-    # submit the job
-    pass
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_1(*machines, **args):
-    """
-    Please run this on localhost!
-
-    1. Run `fabsim <machine> mamico_install:study_1_wall_time` on all machines.
-    2. Run `fabsim <machine> mamico_run:study_1_wall_time` on all machines.
-    3. Wait for all jobs to finish.
-    4. Run `fabsim <machine> mamico_postprocess study_1_wall_time` on all machines.
-    5. Collect the results.
-    6. Run postprocess script.
-    """
-    if env.host != "localhost":
-        rich_print(
-            Panel(
-                "Please run this task on [bold]localhost[/bold].",
-                title="Wrong host",
-                border_style="red",
-                expand=False,
-            )
-        )
-        return
-
-    config = "study_1_wall_time"
-
-    #######################################
-    ## 1. Install MaMiCo on all machines ##
-    #######################################
-
-    # check if each machine is configured in the machines.yml/machines_user.yml
-    for machine in machines:
-        if machine not in env.avail_machines.keys():
-            rich_print(
-                Panel(
-                    f"The machine [bold]{machine}[/bold] is not configured.\n" \
-                    "Please check your [italic]machines.yml/machines_user.yml[/italic] files.",
-                    title="Machine not found",
-                    border_style="red",
-                    expand=False,
-                )
-            )
-            return
-
-    for machine in machines:
-        local(f"fabsim {machine} mamico_install:{config}")
-        # local(f"fabsim {machine} mamico_run:study_1_wall_time,cores=8,corespernode=8,replicas=50")
-        # local(f"fabsim {machine} mamico_run:study_1_wall_time,cores=8,corespernode=4,replicas=50")
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_postprocess_study_3_filter_gauss(**args):
-    """
-    Postprocess the results of the study_3_filter_gauss (MD30 & MD60).
-
-    Please adjust the parameters in the function calls to match your specific case study setup.
-    """
-
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_gauss.postprocess_all import generate_plots
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    generate_plots(
-        scenario=30,
-        oscillations=[2, 5],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        results_dir_gauss=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD30_hsuper_1"),
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD30_hsuper_1600"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD30_hsuper_1", "postprocess"),
-        from_npy=args.get("from_npy", False)
-    )
-
-    generate_plots(
-        scenario=60,
-        oscillations=[2, 5],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        results_dir_gauss=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD60_hsuper_1"),
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD60_hsuper_1600"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD60_hsuper_1", "postprocess"),
-        from_npy=args.get("from_npy", False)
-    )
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_postprocess_study_3_filter_gauss_vel():
-    """
-    Postprocess the velocity results of the study_3_filter_gauss (MD30 & MD60).
-
-    Please adjust the parameters in the function calls to match your specific case study setup.
-    """
-
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_gauss.postprocess_vel import plot_over_time
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    plot_over_time(
-        scenario=30,
-        oscillations=[2, 5],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        results_dir_gauss=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD30_hsuper_1"),
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD30_hsuper_1600"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD30_hsuper_1", "postprocess")
-    )
-
-    plot_over_time(
-        scenario=60,
-        oscillations=[2, 5],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        results_dir_gauss=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD60_hsuper_1"),
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD60_hsuper_1600"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD60_hsuper_1", "postprocess")
-    )
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_postprocess_study_3_filter_gauss_vel_singlecell():
-    """
-    Postprocess the velocity results of the study_3_filter_gauss (MD30 & MD60).
-
-    Please adjust the parameters in the function calls to match your specific case study setup.
-    """
-
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_gauss.postprocess_vel_singlecell import plot_over_time
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    plot_over_time(
-        scenario=30,
-        oscillations=[2, 5],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD30_hsuper_1600"),
-        results_dir_gauss=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD30_hsuper_1"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD30_hsuper_1", "postprocess")
-    )
-
-    plot_over_time(
-        scenario=60,
-        oscillations=[2, 5],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD60_hsuper_1600"),
-        results_dir_gauss=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD60_hsuper_1"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_gauss_MD60_hsuper_1", "postprocess")
-    )
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_postprocess_study_3_filter_pod(**args):
-    """
-    Postprocess the results of the study_3_filter_pod (MD30 & MD60).
-
-    Please adjust the parameters in the function calls to match your specific case study setup.
-    """
-
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_pod.postprocess_all import generate_plots
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    generate_plots(
-        scenario=30,
-        oscillations=[2, 5],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        time_window_sizes=[10, 20, 30, 40, 50, 60, 70, 80],
-        k_maxs=[1, 2, 3],
-        results_dir_pod=os.path.join(env.local_results, "fabmamico_study_3_filter_pod_MD30_hsuper_1"),
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD30_hsuper_1600"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_pod_MD30_hsuper_1", "postprocess"),
-        from_npy=args.get("from_npy", False)
-    )
-
-    # TODO: Add MD60
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_postprocess_study_3_filter_nlm_sq(**args):
-    """
-    Postprocess the results of the study_3_filter_nlm (MD30 & MD60).
-
-    Please adjust the parameters in the function calls to match your specific case study setup.
-    """
-
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_sq.postprocess_all import generate_plots
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    generate_plots(
-        scenario=30,
-        oscillations=[2],
-        wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-        sigsq_rel=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-        hsq_rel=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-        tws=5,
-        results_dir_nlm_sq=os.path.join(env.local_results, "fabmamico_study_3_filter_nlm_sq_MD30_hsuper_1"),
-        results_dir_multimd=os.path.join(env.local_results, "fabmamico_study_3_filter_multimd_MD30_hsuper_1600"),
-        output_dir=os.path.join(env.local_results, "fabmamico_study_3_filter_nlm_sq_MD30_hsuper_1", "postprocess"),
-        from_npy=args.get("from_npy", False)
-    )
-
-    # TODO: Add MD60
-
-
-
-##################################################################################################
 
 
 def generate_sweep(config):
@@ -894,386 +740,15 @@ def generate_sweep(config):
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_multimd(**args):
+def mamico_install_user_spack(**args):
     """
-    Parameters are set for execution on HSUper.
-
+    Install Spack in the user's home directory.
     """
+    update_environment(args)
+    spack_dir = template(env.spack_dir)
+    run(f"mkdir -p {spack_dir}")
+#     run(f"git clone -c feature.manyFiles=true --depth=2 https://github.com/spack/spack.git {spack_dir}")
+    run(f"./spack install cmake", cd=os.path.join(spack_dir, "bin"))
 
-    scenarios = [
-        {"domain": 30, "job_wall_time": "01:00:00" },
-        {"domain": 60, "job_wall_time": "12:00:00" },
-    ]
 
-    for scenario in scenarios:
-
-        config = f"study_3_filter_multimd_MD{scenario['domain']}"
-
-        # 1. Make sure there is an existing installation of MaMiCo
-        if not mamico_install(config, only_check=True):
-            print(f"Please install MaMiCo first for {config}.")
-
-        # 2. Update the environment
-        update_environment(args)
-        update_environment({
-            "mamico_dir": template(env.mamico_dir_template)
-        })
-        # Please be aware that this configuration is specific to HSUper!
-        update_environment({
-            "cores": 1600,
-            "corespernode": 72,
-            "job_wall_time": scenario["job_wall_time"],
-            "partition_name": "medium",
-            "qos_name": "many-jobs-small_shared"
-        })
-
-        # 3. Generate the sweep directory
-        generate_sweep(config)
-
-        # 4. Transfer the configuration files to the remote machine
-        with_config(config)
-        execute(put_configs, config)
-
-        # 5. Update the environment for the postprocessing
-        update_environment({
-            "mamico_venv": template(env.mamico_venv_template),
-            "reduce_command": "python3",
-            "reduce_script": "reduce.py",
-            "reduce_args": f"--scenario={scenario['domain']}",
-        })
-
-        # 6. Run the ensemble
-        path_to_config = find_config_file_path(config)
-        sweep_dir = os.path.join(path_to_config, "SWEEP")
-        env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
-        run_ensemble(config, sweep_dir, **args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_gauss(**args):
-
-    scenarios = [
-        # {"domain": 30, "job_wall_time": "01:00:00" },
-        # {"domain": 60, "job_wall_time": "00:05:00" },
-    ]
-
-    for scenario in scenarios:
-        config = f"study_3_filter_gauss_MD{scenario['domain']}"
-
-        # 1. Make sure there is an existing installation of MaMiCo
-        if not mamico_install(config, only_check=True):
-            print("Please install MaMiCo first.")
-            return
-
-        # 2. Update the environment
-        update_environment(args)
-        update_environment({
-            "mamico_dir": template(env.mamico_dir_template)
-        })
-        # Please be aware that this configuration is specific to HSUper!
-        update_environment({
-            "cores": 1,
-            "corespernode": 1,
-            "job_wall_time": scenario["job_wall_time"],
-            "partition_name": "small_shared",
-            "qos_name": "many-jobs-small_shared"
-        })
-
-        # 3. Generate the sweep directory
-        generate_sweep(config)
-
-        # 4. Transfer the configuration files to the remote machine
-        with_config(config)
-        execute(put_configs, config)
-
-        # 5. Update the environment for the postprocessing
-        update_environment({
-            "mamico_venv": template(env.mamico_venv_template),
-            "reduce_command": "python3",
-            "reduce_script": "reduce.py",
-            "reduce_args": f"--scenario={scenario['domain']}",
-        })
-
-        # 6. Run the ensemble
-        path_to_config = find_config_file_path(config)
-        sweep_dir = os.path.join(path_to_config, "SWEEP")
-        env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
-        run_ensemble(config, sweep_dir, **args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_gauss_plot(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_gauss.plot import create_plot
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    scenarios = [30, 60]
-
-    for scenario in scenarios:
-        create_plot(
-            scenario=scenario,
-            oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-            results_dir_gauss=os.path.join(env.local_results, f"fabmamico_study_3_filter_gauss_MD{scenario}_hsuper"),
-            results_dir_multimd=os.path.join(env.local_results, f"fabmamico_study_3_filter_multimd_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_gauss_MD{scenario}_hsuper", "plots")
-        )
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_pod(**args):
-
-    scenarios = [
-        # {"domain": 30, "job_wall_time": "00:40:00" },
-        {"domain": 60, "job_wall_time": "12:00:00" },
-    ]
-
-    for scenario in scenarios:
-        config = f"study_3_filter_pod_MD{scenario['domain']}"
-
-        # 1. Make sure there is an existing installation of MaMiCo
-        if not mamico_install(config, only_check=True):
-            print("Please install MaMiCo first.")
-            return
-
-        # 2. Update the environment
-        update_environment(args)
-        update_environment({
-            "mamico_dir": template(env.mamico_dir_template)
-        })
-        # Please be aware that this configuration is specific to HSUper!
-        update_environment({
-            "cores": 1,
-            "corespernode": 1,
-            "job_wall_time": scenario["job_wall_time"],
-            "partition_name": "small_shared",
-            "qos_name": "many-jobs-small_shared"
-        })
-
-        # 3. Generate the sweep directory
-        generate_sweep(config)
-
-        # 4. Transfer the configuration files to the remote machine
-        with_config(config)
-        execute(put_configs, config)
-
-        # 5. Update the environment for the postprocessing
-        update_environment({
-            "mamico_venv": template(env.mamico_venv_template),
-            "reduce_command": "python3",
-            "reduce_script": "reduce.py",
-            "reduce_args": f"--scenario={scenario['domain']}",
-        })
-
-        # 6. Run the ensemble
-        path_to_config = find_config_file_path(config)
-        sweep_dir = os.path.join(path_to_config, "SWEEP")
-        env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
-        run_ensemble(config, sweep_dir, **args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_pod_plot(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_pod.plot import create_plot
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    scenarios = [30, 60]
-
-    for scenario in scenarios:
-        create_plot(
-            scenario=scenario,
-            oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-            time_window_sizes=[10, 20, 30, 40, 50, 60, 70, 80],
-            k_maxs=[1, 2, 3],
-            results_dir_pod=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper"),
-            results_dir_multimd=os.path.join(env.local_results, f"fabmamico_study_3_filter_multimd_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper", "plots")
-        )
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_pod_plot_selected(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_pod.plot_selected import create_plot
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    scenarios = [30]
-
-    for scenario in scenarios:
-        create_plot(
-            scenario=scenario,
-            oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-            time_window_sizes=[10, 20, 30, 40, 50, 60, 70, 80],
-            k_maxs=[1, 2, 3],
-            results_dir_pod=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper"),
-            results_dir_multimd=os.path.join(env.local_results, f"fabmamico_study_3_filter_multimd_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper", "plots")
-        )
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_tws(**args):
-
-    scenarios = [
-        # {"domain": 30, "job_wall_time": "01:00:00" },
-        {"domain": 60, "job_wall_time": "12:00:00" },
-    ]
-
-    for scenario in scenarios:
-        config = f"study_3_filter_nlm_tws_MD{scenario['domain']}"
-
-        # 1. Make sure there is an existing installation of MaMiCo
-        if not mamico_install(config, only_check=True):
-            print("Please install MaMiCo first.")
-            return
-
-        # 2. Update the environment
-        update_environment(args)
-        update_environment({
-            "mamico_dir": template(env.mamico_dir_template)
-        })
-        # Please be aware that this configuration is specific to HSUper!
-        update_environment({
-            "cores": 1,
-            "corespernode": 1,
-            "job_wall_time": scenario["job_wall_time"],
-            "partition_name": "small_shared",
-            "qos_name": "many-jobs-small_shared"
-        })
-
-        # 3. Generate the sweep directory
-        generate_sweep(config)
-
-        # 4. Transfer the configuration files to the remote machine
-        with_config(config)
-        execute(put_configs, config)
-
-        # 5. Update the environment for the postprocessing
-        update_environment({
-            "mamico_venv": template(env.mamico_venv_template),
-            "reduce_command": "python3",
-            "reduce_script": "reduce.py",
-            "reduce_args": f"--scenario={scenario['domain']}",
-        })
-
-        # 6. Run the ensemble
-        path_to_config = find_config_file_path(config)
-        sweep_dir = os.path.join(path_to_config, "SWEEP")
-        env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
-        run_ensemble(config, sweep_dir, **args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_tws_plot(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_tws.plot import create_plot
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    scenarios = [30]
-
-    for scenario in scenarios:
-        create_plot(
-            scenario=scenario,
-            oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-            hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            tws=5,
-            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper", "plots")
-        )
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_sq(**args):
-
-    scenarios = [
-        # {"domain": 30, "job_wall_time": "01:00:00" },
-        {"domain": 60, "job_wall_time": "12:00:00" },
-    ]
-
-    for scenario in scenarios:
-        config = f"study_3_filter_nlm_sq_MD{scenario['domain']}"
-
-        # 1. Make sure there is an existing installation of MaMiCo
-        if not mamico_install(config, only_check=True):
-            print("Please install MaMiCo first.")
-            return
-
-        # 2. Update the environment
-        update_environment(args)
-        update_environment({
-            "mamico_dir": template(env.mamico_dir_template)
-        })
-        # Please be aware that this configuration is specific to HSUper!
-        update_environment({
-            "cores": 1,
-            "corespernode": 1,
-            "job_wall_time": scenario["job_wall_time"],
-            "partition_name": "small_shared",
-            "qos_name": "many-jobs-small_shared"
-        })
-
-        # 3. Generate the sweep directory
-        generate_sweep(config)
-
-        # 4. Transfer the configuration files to the remote machine
-        with_config(config)
-        execute(put_configs, config)
-
-        # 5. Update the environment for the postprocessing
-        update_environment({
-            "mamico_venv": template(env.mamico_venv_template),
-            "reduce_command": "python3",
-            "reduce_script": "reduce.py",
-            "reduce_args": f"--scenario={scenario['domain']}",
-        })
-
-        # 6. Run the ensemble
-        path_to_config = find_config_file_path(config)
-        sweep_dir = os.path.join(path_to_config, "SWEEP")
-        env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
-        run_ensemble(config, sweep_dir, **args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_sq_plot(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_sq.plot import create_plot
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    scenarios = [30]
-
-    for scenario in scenarios:
-        create_plot(
-            scenario=scenario,
-            oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-            hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            tws=5,
-            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_sq_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_sq_MD{scenario}_hsuper", "plots")
-        )
+from plugins.FabMaMiCo.CaseStudies import *
