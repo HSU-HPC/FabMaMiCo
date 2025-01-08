@@ -31,8 +31,14 @@ The `template_gauss.xml`-file serves as a template.
 4. Fetch the results from the remote machine.
 <br>
     ```bash
-    fabsim hsuper fetch_results:regex="*study2_gauss_MD60*",files="res_gauss_2d.diff,res_gauss_3d.diff,res_raw.diff"
+    fabsim hsuper fetch_results:regex="*study2_gauss_MD60*",files="res_gauss_2d.diff;res_gauss_3d.diff;res_raw.diff"
     ```
+
+
+## Running with
+
+HSUper
+1 core
 
 
 ## Runtime
