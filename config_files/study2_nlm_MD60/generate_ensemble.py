@@ -5,6 +5,7 @@ from itertools import product
 
 from plugins.FabMaMiCo.utils.alter_xml import alter_xml
 
+
 script_dir_path = os.path.dirname(os.path.abspath(__file__))
 n_writes = 0
 
@@ -14,16 +15,16 @@ n_writes = 0
 
 domains = [
     {
-        "name": "MD30",
+        "name": "MD60",
         # domain:
-        "couette-test/domain/channelheight": 50,
-        "mamico/macroscopic-cell-configuration/cell-size": "2.5 ; 2.5 ; 2.5",
-        "mamico/macroscopic-cell-configuration/linked-cells-per-macroscopic-cell": "1 ; 1 ; 1",
-        "molecular-dynamics/simulation-configuration/number-of-timesteps": 50,
-        "molecular-dynamics/domain-configuration/molecules-per-direction": "28 ; 28 ; 28",
-        "molecular-dynamics/domain-configuration/domain-size": "30.0 ; 30.0 ; 30.0",
-        "molecular-dynamics/domain-configuration/domain-offset": "10.0 ; 10.0 ; 2.5",
-    }
+        "couette-test/domain/channelheight": 100,
+        "mamico/macroscopic-cell-configuration/cell-size": "5.0 ; 5.0 ; 5.0",
+        "mamico/macroscopic-cell-configuration/linked-cells-per-macroscopic-cell": "2 ; 2 ; 2",
+        "molecular-dynamics/simulation-configuration/number-of-timesteps": 100,
+        "molecular-dynamics/domain-configuration/molecules-per-direction": "56 ; 56 ; 56",
+        "molecular-dynamics/domain-configuration/domain-size": "60.0 ; 60.0 ; 60.0",
+        "molecular-dynamics/domain-configuration/domain-offset": "20.0 ; 20.0 ; 5.0",
+    },
 ]
 
 oscillations = [
@@ -65,8 +66,8 @@ nlm_configs = [
     {
         "name": "nlm",
         "template": "template_nlm.xml",
-        "filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel": np.linspace(0.0, 1.0, 11).tolist(),
-        "filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel": np.linspace(0.0, 1.0, 11).tolist(),
+        "filter-pipeline/post-multi-instance/nlm-junction/NLM/sigsq_rel": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+        "filter-pipeline/post-multi-instance/nlm-junction/NLM/hsq_rel": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
         "filter-pipeline/post-multi-instance/nlm-junction/NLM/time-window-size": 5
     }
 ]

@@ -23,7 +23,7 @@ The `template_gauss.xml`-file serves as a template.
 2. Submit the jobs as an ensemble to the remote machine.
 <br>
     ```bash
-    fabsim hsuper mamico_run_ensemble:study2_multimd_MD30,cores=1600,job_wall_time="00:30:00",partition_name="medium"
+    fabsim hsuper mamico_run_ensemble:study2_multimd_MD30,cores=1600,job_wall_time="00:30:00",partition_name="medium",qos_name="many-jobs-small_shared"
     ```
 
 3. Wait until all jobs have finished successfully.

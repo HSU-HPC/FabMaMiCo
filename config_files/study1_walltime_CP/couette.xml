@@ -22,11 +22,11 @@
           wall-velocity * cos(2PI * wall-oscillations * CYCLE / coupling-cycles)
     -->
     <domain
-      channelheight="GENERATED"
+      channelheight="50"
       wall-init-velocity="0.0 ; 0.0 ; 0.0"
       wall-init-cycles="0"
-      wall-velocity="GENERATED"
-      wall-oscillations="GENERATED"
+      wall-velocity="0.5 ; 0.0 ; 0.0"
+      wall-oscillations="0"
     />
 
     <!-- Coupled simulation general setup parameters:
@@ -47,7 +47,7 @@
         Enables / disables computation of signal-to-noise ratio between filter output and macroscopic solver, writes to stdout. Only for sequential tests.
     -->
     <coupling
-      coupling-cycles="1001"
+      coupling-cycles="50"
       two-way-coupling="no"
       send-from-md-to-macro="yes"
       filter-init-cycles="0"
@@ -79,7 +79,7 @@
         vector of '0' and '1', '1' for a boundary OpenFOAM when it shall be coupled with MaMiCo, uses the order according to the blockMesh order, '0' when the boundary shall not be coupled
     -->
     <macroscopic-solver
-      type="lb"
+      type="fd"
       viscosity="2.14"
       number-of-processes="1 ; 1 ; 1"
       plot-every-timestep="0"
@@ -120,7 +120,7 @@
         Should be equal to molecules-per-direction[0] / domain-size[0] * molecules-per-direction[1] / domain-size[1] * molecules-per-direction[2] / domain-size[2], unless MD checkpoint is used.
     -->
     <microscopic-solver
-      type="md"
+      type="ls1"
       temperature="1.1"
       equilibration-steps="0"
       number-md-simulations="1"
@@ -144,8 +144,8 @@
   <mamico>
     <!-- "write-every-macroscopic-timestep" means CFD time step /-->
     <macroscopic-cell-configuration
-      cell-size="GENERATED"
-      linked-cells-per-macroscopic-cell="GENERATED"
+      cell-size="2.5 ; 2.5 ; 2.5"
+      linked-cells-per-macroscopic-cell="1 ; 1 ; 1"
       write-every-microscopic-timestep="0"
       microscopic-filename="MacroscopicCell_micro"
       write-every-macroscopic-timestep="0"
@@ -154,21 +154,22 @@
     <!-- particle-insertion type="usher" enables removal of particles  /-->
     <!-- TODO choose insert-every-timestep automatically /-->
     <!-- TODO check tolerance criterium /-->
-    <particle-insertion type="usher" maximum-number-of-iterations="100" maximum-number-of-restarts="500" insert-every-timestep="10" tolerance="0.5" />
-    <!--<particle-insertion type="none" />/-->
+    <!--<particle-insertion type="usher" maximum-number-of-iterations="100" maximum-number-of-restarts="500" insert-every-timestep="10" tolerance="0.5" /> -->
+    <particle-insertion type="none" />
     <momentum-insertion type="nie-velocity-imposition" outermost-overlap-layer="2" innermost-overlap-layer="3" />
     <!-- TODO inconsistent mass flux evaluation? /-->
     <transfer-strategy type="nie-transfer" mass-flux-west="yes" mass-flux-east="yes" mass-flux-north="no" mass-flux-south="no" mass-flux-bottom="no" mass-flux-top="no" shift-by-timesteps="0.5"/>
     <!-- time-window-size means number of coupling cycles/-->
     <!-- TODO try to use local density for boundary force /-->
-    <boundary-force type="zhou-boundary-force" west="yes" east="yes" north="yes" south="yes" bottom="yes" top="yes" density="0.81" temperature="1.1" />
-    <parallel-topology type="xyz" />
+    <!--<boundary-force type="zhou-boundary-force" west="yes" east="yes" north="yes" south="yes" bottom="yes" top="yes" density="0.81" temperature="1.1" />-->
+    <boundary-force type="none" west="no" east="no" north="no" south="no" bottom="no" top="no" density="0.81" temperature="1.1" />
+    <parallel-topology type="zyx" />
     <!-- the thermostat option defines, where to apply the above defined temperature within the md region, options:
       -all: the thermostat will be applied in every cell of the md region
       -outerLayers: the thermostat will be applied in the value defined in "number-layers" (integer value) number of layers, starting with the most outer layer
       -onlyOutestLayer: the thermostat will be applied only in the outest cell layer of the md region
       -nowhere: the thermostat will be applied nowehere within the md region /-->
-    <thermostat type='outerLayers' number-layers='1' />
+    <thermostat type='all' />
   </mamico>
 
   <molecular-dynamics>
@@ -176,7 +177,7 @@
     <!-- initial temperature should be 1.27 to reach 1.1 after equilibration /-->
     <molecule-configuration
       mass="1.0"
-      temperature="1.27"
+      temperature="1.1"
       sigma="1.0"
       epsilon="1.0"
       mean-velocity="0.0 ; 0.0 ; 0.0"
@@ -184,30 +185,27 @@
 
     <!-- number of linked cells must be divisible by number-of-processes /-->
     <!-- number of mpi ranks must be total number-of-processes /-->
-    <mpi-configuration number-of-processes="1 ; 1 ; 1" ></mpi-configuration>
+    <mpi-configuration number-of-processes="2 ; 2 ; 2" ></mpi-configuration>
 
     <!-- TODO check fix-seed for mamico / USHER /-->
     <simulation-configuration
       dt="0.005"
-      number-of-timesteps="GENERATED"
+      number-of-timesteps="50"
       reorganise-memory-every-timestep="20"
       compute-macroscopic-quantities-every-timestep="0"
       fix-seed="yes"
-    ></simulation-configuration>
+    ></simulation-configuration>  
 
     <vtk-configuration filename="Molecules" write-every-timestep="0"></vtk-configuration>
-    <adios2-configuration directory-name="adiosOutput" write-every-timestep="0"></adios2-configuration>
 
-    <checkpoint-configuration filename="CheckpointSimpleMD" write-every-timestep="0"></checkpoint-configuration>
+    <checkpoint-configuration filename="CheckpointLS1" write-every-timestep="0"></checkpoint-configuration>
 
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
-      init-from-sequential-checkpoint="CheckpointSimpleMD60_0__20000"
-
-      molecules-per-direction="GENERATED"
-      domain-size="GENERATED"
-      domain-offset="GENERATED"
+      molecules-per-direction="28 ; 28 ; 28"
+      domain-size="30.0 ; 30.0 ; 30.0"
+      domain-offset="10.0 ; 10.0 ; 2.5"
       cutoff-radius="2.2"
       linked-cell-size="2.5 ; 2.5 ; 2.5"
       k_B="1.0"
@@ -218,7 +216,7 @@
       bottom-north-west="reflecting" bottom-north="reflecting" bottom-north-east="reflecting"
 
       south-west="reflecting"        south="reflecting"        south-east="reflecting"
-      west="reflecting"                                          east="reflecting"
+      west="reflecting"                                        east="reflecting"
       north-west="reflecting"        north="reflecting"        north-east="reflecting"
 
       top-south-west="reflecting"    top-south="reflecting"    top-south-east="reflecting"
@@ -228,31 +226,16 @@
 
   </molecular-dynamics>
 
+  <!-- USING PERIODIC BOUNDARIES as defined in ls1config.xml -->
+
   <!-- XML config file used by MaMiCo's FilterPipeline -->
 
   <filter-pipeline>
 
-    <per-instance output="md"/>
+    <per-instance output="md">
+    </per-instance>
 
-    <post-multi-instance output="nlm-junction">
-
-      <prefilter filtered-values="macro-mass macro-momentum" input="md">
-        <gauss dim="0" sigma="1" extrapolation="mirror"/>
-        <gauss dim="1" sigma="1" extrapolation="mirror"/>
-        <gauss dim="2" sigma="1" extrapolation="mirror"/>
-        <constant dir="1" value="0"/>
-        <constant dir="2" value="0"/>
-        <write-to-file location="prefilter.csv"/>
-      </prefilter>
-
-      <nlm-junction input="md prefilter" filtered-values="macro-mass macro-momentum">
-        <NLM time-window-size="GENERATED" sigsq="10" hsq="20" sigsq_rel="GENERATED" hsq_rel="GENERATED"/>
-      </nlm-junction>
-
-      <postfilter filtered-values="macro-mass macro-momentum" input="nlm-junction">
-        <write-to-file location="postfilter.csv"/>
-      </postfilter>
-
+    <post-multi-instance output="md">
     </post-multi-instance>
 
   </filter-pipeline>

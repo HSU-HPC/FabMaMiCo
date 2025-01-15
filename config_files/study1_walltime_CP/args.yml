@@ -1,0 +1,4 @@
+cores: 8
+replicas: 50
+job_wall_time: "0-00:02:00"
+job_name_template: "fabmamico_${config}_${machine_name}_${cores}_${corespernode}"

@@ -22,11 +22,11 @@
           wall-velocity * cos(2PI * wall-oscillations * CYCLE / coupling-cycles)
     -->
     <domain
-      channelheight="GENERATED"
+      channelheight="100"
       wall-init-velocity="0.0 ; 0.0 ; 0.0"
       wall-init-cycles="0"
-      wall-velocity="GENERATED"
-      wall-oscillations="GENERATED"
+      wall-velocity="0.5 ; 0.0 ; 0.0"
+      wall-oscillations="0"
     />
 
     <!-- Coupled simulation general setup parameters:
@@ -47,11 +47,11 @@
         Enables / disables computation of signal-to-noise ratio between filter output and macroscopic solver, writes to stdout. Only for sequential tests.
     -->
     <coupling
-      coupling-cycles="1001"
-      two-way-coupling="no"
+      coupling-cycles="2001"
+      two-way-coupling="yes"
       send-from-md-to-macro="yes"
       filter-init-cycles="0"
-      write-csv-every-timestep="0"
+      write-csv-every-timestep="100"
       send-from-macro-to-md="yes"
       compute-snr="no"
     />
@@ -82,7 +82,7 @@
       type="lb"
       viscosity="2.14"
       number-of-processes="1 ; 1 ; 1"
-      plot-every-timestep="10"
+      plot-every-timestep="100"
       init-advance-cycles="0"
       foam-setup-directory="/home/helene/Dokumente/mamico-dev/coupling/tests/build_couette"
       foam-setup-folder="FoamSetup"
@@ -122,8 +122,8 @@
     <microscopic-solver
       type="md"
       temperature="1.1"
-      equilibration-steps="0"
-      number-md-simulations="1"
+      equilibration-steps="10000"
+      number-md-simulations="20"
       density="0.813037037"
     />
 
@@ -144,8 +144,8 @@
   <mamico>
     <!-- "write-every-macroscopic-timestep" means CFD time step /-->
     <macroscopic-cell-configuration
-      cell-size="GENERATED"
-      linked-cells-per-macroscopic-cell="GENERATED"
+      cell-size="5.0 ; 5.0 ; 5.0"
+      linked-cells-per-macroscopic-cell="2 ; 2 ; 2"
       write-every-microscopic-timestep="0"
       microscopic-filename="MacroscopicCell_micro"
       write-every-macroscopic-timestep="0"
@@ -189,10 +189,10 @@
     <!-- TODO check fix-seed for mamico / USHER /-->
     <simulation-configuration
       dt="0.005"
-      number-of-timesteps="GENERATED"
+      number-of-timesteps="100"
       reorganise-memory-every-timestep="20"
       compute-macroscopic-quantities-every-timestep="0"
-      fix-seed="yes"
+      fix-seed="no"
     ></simulation-configuration>
 
     <vtk-configuration filename="Molecules" write-every-timestep="0"></vtk-configuration>
@@ -203,11 +203,9 @@
     <!-- max density using molecules-per-direction ca. 0.9  /-->
     <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
     <domain-configuration
-      init-from-sequential-checkpoint="CheckpointSimpleMD30_0__10000"
-
-      molecules-per-direction="GENERATED"
-      domain-size="GENERATED"
-      domain-offset="GENERATED"
+      molecules-per-direction="56 ; 56 ; 56"
+      domain-size="60.0 ; 60.0 ; 60.0"
+      domain-offset="20.0 ; 20.0 ; 5.0"
       cutoff-radius="2.2"
       linked-cell-size="2.5 ; 2.5 ; 2.5"
       k_B="1.0"
@@ -218,7 +216,7 @@
       bottom-north-west="reflecting" bottom-north="reflecting" bottom-north-east="reflecting"
 
       south-west="reflecting"        south="reflecting"        south-east="reflecting"
-      west="reflecting"                                          east="reflecting"
+      west="reflecting"                                        east="reflecting"
       north-west="reflecting"        north="reflecting"        north-east="reflecting"
 
       top-south-west="reflecting"    top-south="reflecting"    top-south-east="reflecting"
@@ -232,26 +230,22 @@
 
   <filter-pipeline>
 
-    <per-instance output="md"/>
+    <per-instance output="md"/> 
 
-    <post-multi-instance output="nlm-junction">
+    <post-multi-instance output="md">
 
       <prefilter filtered-values="macro-mass macro-momentum" input="md">
-        <gauss dim="0" sigma="1" extrapolation="mirror"/>
-        <gauss dim="1" sigma="1" extrapolation="mirror"/>
-        <gauss dim="2" sigma="1" extrapolation="mirror"/>
-        <constant dir="1" value="0"/>
-        <constant dir="2" value="0"/>
-        <write-to-file location="prefilter.csv"/>
+        <!-- <gauss dim="0" sigma="1" extrapolation="mirror" />
+        <gauss dim="1" sigma="1" extrapolation="mirror" />
+        <gauss dim="2" sigma="1" extrapolation="mirror" /> -->
+        <constant dir="1" value="0" />
+        <constant dir="2" value="0" />
+        <write-to-file location="prefilter.csv" />
       </prefilter>
 
       <nlm-junction input="md prefilter" filtered-values="macro-mass macro-momentum">
-        <NLM time-window-size="GENERATED" sigsq="10" hsq="20" sigsq_rel="GENERATED" hsq_rel="GENERATED"/>
+        <NLM time-window-size="5" sigsq="10" hsq="20" sigsq_rel="0.05" hsq_rel="0.1" />
       </nlm-junction>
-
-      <postfilter filtered-values="macro-mass macro-momentum" input="nlm-junction">
-        <write-to-file location="postfilter.csv"/>
-      </postfilter>
 
     </post-multi-instance>
 
