@@ -14,32 +14,24 @@ The parameters `<machine>` is irrelevant for this command.
 ## Get System Information
 The following commands make use of the remote lmod system to load modules.
 
-### mamico_ml_overview
+### mamico_mod_overview
 ```sh
-fabsim <machine> mamico_ml_overview
+fabsim <machine> mamico_mod_overview
 ```
 This lists an overview of available modules that can be loaded via lmod on the remote machine.
 
-### mamico_ml_available
+### mamico_mod_available
 ```sh
-fabsim <machine> mamico_ml_available:<query>
+fabsim <machine> mamico_mod_available:<query>
 ```
 This lists a more detailed overview of available modules that can be loaded via lmod on the remote machine.
 The optional parameter `<query>` can be used to filter the list of available modules.
 
-### mamico_ml_keyword
+### mamico_mod_keyword
 ```sh
-fabsim <machine> mamico_ml_keyword:<keyword>
+fabsim <machine> mamico_mod_keyword:<keyword>
 ```
 This searches modules that can be loaded via lmod on the remote machine for a specific keyword.
-
-### mamico_ml
-```sh
-fabsim <machine> mamico_ml:<command>
-```
-This executes a specific lmod command on the remote machine.
-The parameter `<command>` can be any valid lmod command, e.g. `avail`, `spider`, etc.
-It is prepended with `module` automatically.
 
 ## Handle MaMiCo Installations
 
