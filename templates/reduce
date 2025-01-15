@@ -8,8 +8,11 @@ cd $job_results
 # Run prefix
 $run_prefix
 
-# Run the executable
-$run_command $mamico_dir/$mamico_checksum/build/couette
+# Activate the virtual environment
+source $mamico_venv/bin/activate
+
+# Run reduction script to reduce data
+$reduce_command $reduce_script $reduce_args
 
 # TODO: DELETE INPUT FILES? e.g. checkpoints
 

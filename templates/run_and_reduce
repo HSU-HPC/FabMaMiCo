@@ -11,7 +11,11 @@ $run_prefix
 # Run the executable
 $run_command $mamico_dir/$mamico_checksum/build/couette
 
-# TODO: DELETE INPUT FILES? e.g. checkpoints
+# Activate the virtual environment
+source $mamico_venv/bin/activate
+
+# Run reduction script to reduce data
+$reduce_command $reduce_script $reduce_args
 
 # Save the environment variables
 /usr/bin/env > env.log

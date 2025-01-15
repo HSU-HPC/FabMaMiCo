@@ -25,6 +25,8 @@ $compilation_command_mamico
 # Move compilation-info.yml into build-folder
 mv compilation_info.yml build/
 
+# TODO: CAN DELETE INPUT FILES ???
+
 # Save the environment variables
 /usr/bin/env > env.log
 
