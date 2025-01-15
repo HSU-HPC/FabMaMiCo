@@ -240,8 +240,7 @@ class MaMiCoSetup():
                 f"Please wait until the source code of MaMiCo"\
                 f"{', ls1-mardyn' if need_ls1 else ''}"\
                 f" is copied to {env.host}.",
-                title=f"Transferring Source Code"\
-                    f"{ ' & ls1-mardyn' if need_ls1 else '' }",
+                title="Transferring Source Code",
                 border_style="pink1",
                 expand=False
             )
@@ -294,7 +293,7 @@ class MaMiCoSetup():
         if self.settings.get('need_ls1', False):
             txt += f"cd {os.path.join(env.mamico_dir, env.mamico_checksum, 'ls1')}\n"
             txt += "cmake -S. -Bbuild"
-            txt += " -DMAMICO_COUPLING=ON -DMAMICO_SRC_DIR='..'"
+            # txt += " -DMAMICO_COUPLING=ON -DMAMICO_SRC_DIR='..'"
             for key, value in self.settings.get('cmake_flags_ls1', {}).items():
                 if isinstance(value, bool):
                     value = "ON" if value else "OFF"
