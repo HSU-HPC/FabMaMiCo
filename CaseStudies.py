@@ -63,7 +63,7 @@ def mamico_study1_walltime_plot(**args):
 
     for i, machine in enumerate(MACHINES):
         for k, node_config in enumerate(NODE_CONFIGS):
-            output_files = glob.glob(os.path.join(env.local_results, f"fabmamico_study1_walltime_{machine[0]}_{node_config}*/*.out"))
+            output_files = glob.glob(os.path.join(env.local_results, f"fabmamico_study_1_wall_time_{machine[0]}_{node_config}*/*.out"))
             for l, output_file in enumerate(output_files):
                 runtimes[i, k, l] = extract_walltime_from_out_file(output_file)
 
@@ -90,8 +90,8 @@ def mamico_study1_walltime_plot(**args):
     plt.ylabel('wall time in seconds')
     plt.legend()
 
-    OUTPUT_FILE = os.path.join(env.local_results, 'study_1_wall_time_plot.pdf')
-    sns_plot.figure.savefig(OUTPUT_FILE, format='pdf')
+    OUTPUT_FILE = os.path.join(env.local_results, 'study_1_wall_time_plot.png')
+    sns_plot.figure.savefig(OUTPUT_FILE, format='png')
     plt.show()
 
 
@@ -241,7 +241,7 @@ def mamico_study2_gauss_plot(**args):
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_pod(**args):
+def mamico_study2_pod(**args):
 
     scenarios = [
         # {"domain": 30, "job_wall_time": "00:40:00" },
@@ -294,8 +294,8 @@ def mamico_study_3_filter_pod(**args):
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_pod_plot(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_pod.plot import create_plot
+def mamico_study2_pod_plot(**args):
+    from plugins.FabMaMiCo.scripts.postprocess.study2_pod.plot import create_plot
 
     if (env.host != "localhost"):
         print("Please run this task on localhost.")
@@ -310,137 +310,137 @@ def mamico_study_3_filter_pod_plot(**args):
             wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
             time_window_sizes=[10, 20, 30, 40, 50, 60, 70, 80],
             k_maxs=[1, 2, 3],
-            results_dir_pod=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper"),
-            results_dir_multimd=os.path.join(env.local_results, f"fabmamico_study_3_filter_multimd_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper", "plots")
+            results_dir_pod=os.path.join(env.local_results, f"fabmamico_study2_pod_MD{scenario}_hsuper"),
+            results_dir_multimd=os.path.join(env.local_results, f"fabmamico_study2_multimd_MD{scenario}_hsuper"),
+            output_dir=os.path.join(env.local_results, f"fabmamico_study2_pod_MD{scenario}_hsuper", "plots")
         )
 
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_study3_pod_plot_selected(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_pod.plot_selected import create_plot
+def mamico_study2_pod_plot_selected(**args):
+    from plugins.FabMaMiCo.scripts.postprocess.study2_pod.plot_selected import create_plot
 
     if (env.host != "localhost"):
         print("Please run this task on localhost.")
         return
 
-    scenarios = [30]
+    scenarios = [30, 60]
 
     for scenario in scenarios:
         create_plot(
             scenario=scenario,
             oscillations=[2, 5],
-            wall_velocities=[0.2, 1.8],
+            wall_velocities=[0.2, 1.0, 1.8],
             time_window_sizes=[10, 20, 30, 40, 50, 60, 70, 80],
             k_maxs=[1, 2, 3],
-            results_dir_pod=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper"),
-            results_dir_multimd=os.path.join(env.local_results, f"fabmamico_study_3_filter_multimd_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_pod_MD{scenario}_hsuper", "plots")
+            results_dir_pod=os.path.join(env.local_results, f"fabmamico_study2_pod_MD{scenario}_hsuper"),
+            results_dir_multimd=os.path.join(env.local_results, f"fabmamico_study2_multimd_MD{scenario}_hsuper"),
+            output_dir=os.path.join(env.local_results, f"fabmamico_study2_pod_MD{scenario}_hsuper", "plots")
         )
 
 ##########################################
 # NLM time-window-size
 
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_tws(**args):
+# @task
+# @load_plugin_env_vars("FabMaMiCo")
+# def mamico_study_3_filter_nlm_tws(**args):
 
-    scenarios = [
-        # {"domain": 30, "job_wall_time": "01:00:00" },
-        {"domain": 60, "job_wall_time": "12:00:00" },
-    ]
+#     scenarios = [
+#         # {"domain": 30, "job_wall_time": "01:00:00" },
+#         {"domain": 60, "job_wall_time": "12:00:00" },
+#     ]
 
-    for scenario in scenarios:
-        config = f"study_3_filter_nlm_tws_MD{scenario['domain']}"
+#     for scenario in scenarios:
+#         config = f"study_3_filter_nlm_tws_MD{scenario['domain']}"
 
-        # 1. Make sure there is an existing installation of MaMiCo
-        if not mamico_install(config, only_check=True):
-            print("Please install MaMiCo first.")
-            return
+#         # 1. Make sure there is an existing installation of MaMiCo
+#         if not mamico_install(config, only_check=True):
+#             print("Please install MaMiCo first.")
+#             return
 
-        # 2. Update the environment
-        update_environment(args)
-        update_environment({
-            "mamico_dir": template(env.mamico_dir_template)
-        })
-        # Please be aware that this configuration is specific to HSUper!
-        update_environment({
-            "cores": 1,
-            "corespernode": 1,
-            "job_wall_time": scenario["job_wall_time"],
-            "partition_name": "small_shared",
-            "qos_name": "many-jobs-small_shared"
-        })
+#         # 2. Update the environment
+#         update_environment(args)
+#         update_environment({
+#             "mamico_dir": template(env.mamico_dir_template)
+#         })
+#         # Please be aware that this configuration is specific to HSUper!
+#         update_environment({
+#             "cores": 1,
+#             "corespernode": 1,
+#             "job_wall_time": scenario["job_wall_time"],
+#             "partition_name": "small_shared",
+#             "qos_name": "many-jobs-small_shared"
+#         })
 
-        # 3. Generate the sweep directory
-        generate_sweep(config)
+#         # 3. Generate the sweep directory
+#         generate_sweep(config)
 
-        # 4. Transfer the configuration files to the remote machine
-        with_config(config)
-        execute(put_configs, config)
+#         # 4. Transfer the configuration files to the remote machine
+#         with_config(config)
+#         execute(put_configs, config)
 
-        # 5. Update the environment for the postprocessing
-        update_environment({
-            "mamico_venv": template(env.mamico_venv_template),
-            "reduce_command": "python3",
-            "reduce_script": "reduce.py",
-            "reduce_args": f"--scenario={scenario['domain']}",
-        })
+#         # 5. Update the environment for the postprocessing
+#         update_environment({
+#             "mamico_venv": template(env.mamico_venv_template),
+#             "reduce_command": "python3",
+#             "reduce_script": "reduce.py",
+#             "reduce_args": f"--scenario={scenario['domain']}",
+#         })
 
-        # 6. Run the ensemble
-        path_to_config = find_config_file_path(config)
-        sweep_dir = os.path.join(path_to_config, "SWEEP")
-        env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
-        run_ensemble(config, sweep_dir, **args)
-
-
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_tws_plot(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_tws.plot import create_plot
-
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
-
-    scenarios = [30]
-
-    for scenario in scenarios:
-        create_plot(
-            scenario=scenario,
-            oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-            hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            tws=5,
-            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper", "plots")
-        )
+#         # 6. Run the ensemble
+#         path_to_config = find_config_file_path(config)
+#         sweep_dir = os.path.join(path_to_config, "SWEEP")
+#         env.script = 'run_and_reduce' if args.get("script", None) is None else args.get("script")
+#         run_ensemble(config, sweep_dir, **args)
 
 
-@task
-@load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_tws_plot_selected(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_tws.plot import create_plot
+# @task
+# @load_plugin_env_vars("FabMaMiCo")
+# def mamico_study_3_filter_nlm_tws_plot(**args):
+#     from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_tws.plot import create_plot
 
-    if (env.host != "localhost"):
-        print("Please run this task on localhost.")
-        return
+#     if (env.host != "localhost"):
+#         print("Please run this task on localhost.")
+#         return
 
-    scenarios = [30]
+#     scenarios = [30]
 
-    for scenario in scenarios:
-        create_plot(
-            scenario=scenario,
-            oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
-            hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            tws=5,
-            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper", "plots")
-        )
+#     for scenario in scenarios:
+#         create_plot(
+#             scenario=scenario,
+#             oscillations=[2, 5],
+#             wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
+#             hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+#             sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+#             tws=5,
+#             results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper"),
+#             output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper", "plots")
+#         )
+
+
+# @task
+# @load_plugin_env_vars("FabMaMiCo")
+# def mamico_study_3_filter_nlm_tws_plot_selected(**args):
+#     from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_tws.plot import create_plot
+
+#     if (env.host != "localhost"):
+#         print("Please run this task on localhost.")
+#         return
+
+#     scenarios = [30]
+
+#     for scenario in scenarios:
+#         create_plot(
+#             scenario=scenario,
+#             oscillations=[2, 5],
+#             wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
+#             hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+#             sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+#             tws=5,
+#             results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper"),
+#             output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_tws_MD{scenario}_hsuper", "plots")
+#         )
 
 
 ##########################################
@@ -448,7 +448,7 @@ def mamico_study_3_filter_nlm_tws_plot_selected(**args):
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_sq(**args):
+def mamico_study2_nlm(**args):
 
     scenarios = [
         # {"domain": 30, "job_wall_time": "01:00:00" },
@@ -501,14 +501,14 @@ def mamico_study_3_filter_nlm_sq(**args):
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_sq_plot(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_sq.plot import create_plot
+def mamico_study2_nlm_plot(**args):
+    from plugins.FabMaMiCo.scripts.postprocess.study2_nlm.plot import create_plot
 
     if (env.host != "localhost"):
         print("Please run this task on localhost.")
         return
 
-    scenarios = [30]
+    scenarios = [30, 60]
 
     for scenario in scenarios:
         create_plot(
@@ -518,30 +518,30 @@ def mamico_study_3_filter_nlm_sq_plot(**args):
             hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
             sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
             tws=5,
-            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_sq_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_sq_MD{scenario}_hsuper", "plots")
+            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study2_nlm_MD{scenario}_hsuper"),
+            output_dir=os.path.join(env.local_results, f"fabmamico_study2_nlm_MD{scenario}_hsuper", "plots")
         )
 
 
 @task
 @load_plugin_env_vars("FabMaMiCo")
-def mamico_study_3_filter_nlm_sq_plot_selected(**args):
-    from plugins.FabMaMiCo.scripts.postprocess.study_3_filter_nlm_sq.plot_selected import create_plot
+def mamico_study2_nlm_plot_selected(**args):
+    from plugins.FabMaMiCo.scripts.postprocess.study2_nlm.plot_selected import create_plot
 
     if (env.host != "localhost"):
         print("Please run this task on localhost.")
         return
 
-    scenarios = [30]
+    scenarios = [30, 60]
 
     for scenario in scenarios:
         create_plot(
             scenario=scenario,
             oscillations=[2, 5],
-            wall_velocities=[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8],
+            wall_velocities=[0.2, 0.8, 1.4, 1.8],
             hsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
             sigsq_rel=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
             tws=5,
-            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_sq_MD{scenario}_hsuper"),
-            output_dir=os.path.join(env.local_results, f"fabmamico_study_3_filter_nlm_sq_MD{scenario}_hsuper", "plots")
+            results_dir_nlm_sq=os.path.join(env.local_results, f"fabmamico_study2_nlm_MD{scenario}_hsuper"),
+            output_dir=os.path.join(env.local_results, f"fabmamico_study2_nlm_MD{scenario}_hsuper", "plots")
         )
