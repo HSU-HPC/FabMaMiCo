@@ -11,7 +11,7 @@ multiline = [
     'scenario-configuration/couette-test/coupling',
     'scenario-configuration/couette-test/macroscopic-solver',
     'scenario-configuration/couette-test/microscopic-solver',
-    'scenario-configuration/mamico/macroscopic-cell-configuration',
+    'scenario-configuration/mamico/coupling-cell-configuration',
     'scenario-configuration/molecular-dynamics/molecule-configuration',
     'scenario-configuration/molecular-dynamics/simulation-configuration',
 ]

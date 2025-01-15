@@ -41,20 +41,21 @@ class SortedDict(dict):
 # Example:
 #
 # Note: Elements in an array must be of the same type to be comparable
+if __name__ == "__main__":
 
-test = SortedDict({
-    'a': 1,
-    'c': 2,
-    'b': 66,
-    'f': "abc",
-    'd': {
-        'mensch': 1,
-        'katze': 2,
-        'ufo': 3,
-        'flugzeug': [
-            1, 5, 9, 2
-        ]
-    }
-})
+    test = SortedDict({
+        'a': 1,
+        'c': 2,
+        'b': 66,
+        'f': "abc",
+        'd': {
+            'mensch': 1,
+            'katze': 2,
+            'ufo': 3,
+            'flugzeug': [
+                1, 5, 9, 2
+            ]
+        }
+    })
 
-print(test.items())
+    print(test.items())
