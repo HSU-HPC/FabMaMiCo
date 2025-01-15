@@ -46,11 +46,11 @@
       Enables / disables computation of signal-to-noise ratio between filter output and macroscopic solver, writes to stdout. Only for sequential tests.
   -->
   <coupling
-    coupling-cycles="50"
-    two-way-coupling="yes"
+    coupling-cycles="1000"
+    two-way-coupling="no"
     send-from-md-to-macro="yes"
     filter-init-cycles="0"
-    write-csv-every-timestep="2"
+    write-csv-every-timestep="10"
     send-from-macro-to-md="yes"
     compute-snr="no"
   />
@@ -81,7 +81,7 @@
     type="fd"
     viscosity="2.14"
     number-of-processes="1 ; 1 ; 1"
-    plot-every-timestep="2"
+    plot-every-timestep="10"
     init-advance-cycles="0"
     foam-setup-directory="/home/helene/Dokumente/mamico-dev/coupling/tests/build_couette"
     foam-setup-folder="FoamSetup"
@@ -197,7 +197,7 @@
   <vtk-configuration filename="Molecules" write-every-timestep="0"></vtk-configuration>
   <adios2-configuration directory-name="adiosOutput" write-every-timestep="0"></adios2-configuration>
 
-  <checkpoint-configuration filename="CheckpointSimpleMD" write-every-timestep="1000"></checkpoint-configuration>
+  <checkpoint-configuration filename="CheckpointSimpleMD" write-every-timestep="0"></checkpoint-configuration>
 
   <!-- max density using molecules-per-direction ca. 0.9  /-->
   <!-- cutoff-radius should be 2.2 to be consistent with Nie et. al paper /-->
